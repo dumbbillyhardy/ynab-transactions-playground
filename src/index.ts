@@ -5,11 +5,12 @@ import * as readline from 'readline';
 import {API} from 'ynab';
 
 import {Budget} from './beans/budget';
+import {Transaction} from './beans/transaction';
 import {SheetsBudgetDAO} from './dao/sheets/budget';
-import {SheetRangeBuilder} from './dao/sheets/interfaces';
 import {SheetsTransactionsDAO} from './dao/sheets/transactions';
-// import {YnabBudgetDAO} from './dao/ynab/budget';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
+import {SheetsService} from './service/sheets';
+import {SheetRangeBuilder} from './sheet_range';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -38,9 +39,11 @@ fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
             new SheetsBudgetDAO(sheets, {spreadsheetId, range: budgetRange});
         const rangeBuilder =
             new SheetRangeBuilder(transactionsRange, spreadsheetId);
+        const sheetsService = new SheetsService<Transaction>(
+            sheets, rangeBuilder, Transaction.fromSheetsArray,
+            (t: Transaction, b_id?: string) => t.toSheetsArray(b_id!));
         const sheetsTransactionsService =
-            new SheetsTransactionsDAO(sheets, rangeBuilder);
-        sheetsTransactionsService;
+            new SheetsTransactionsDAO(sheetsService, rangeBuilder);
         return sheetsBudgetService.getAll().then((budgets) => {
           let billy: Budget|undefined;
           for (const b of budgets) {
