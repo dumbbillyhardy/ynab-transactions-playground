@@ -2,9 +2,9 @@ import {TransactionDetail} from 'ynab';
 
 import {Transaction} from '../../beans/transaction';
 import {fromNullable} from '../../util/option';
-import {TransactionsDAO} from '../interface/transactions';
+import {ChildDAO} from '../interfaces';
 
-export class TransientTransactionsDAO implements TransactionsDAO {
+export class TransientTransactionsDAO implements ChildDAO<Transaction> {
   readonly transactions: Map<string, Transaction[]>;
 
   constructor(transactions_by_budget: Map<string, TransactionDetail[]>) {
@@ -14,7 +14,7 @@ export class TransientTransactionsDAO implements TransactionsDAO {
         }));
   }
 
-  getAllInBudget(b_id: string): Promise<Transaction[]> {
+  getAllForParent(b_id: string): Promise<Transaction[]> {
     return Promise.resolve()
         .then(() => fromNullable(this.transactions.get(b_id)))
         .then(ts => ts.unwrap());

@@ -1,9 +1,9 @@
 import {API} from 'ynab';
 
 import {Budget} from '../../beans/budget';
-import {BudgetDAO} from '../interface/budget';
+import {TopLevelDAO} from '../interfaces';
 
-export class YnabBudgetDAO implements BudgetDAO {
+export class YnabBudgetDAO implements TopLevelDAO<Budget> {
   constructor(private readonly ynabAPI: API) {}
 
   getAll(): Promise<Budget[]> {
@@ -17,15 +17,19 @@ export class YnabBudgetDAO implements BudgetDAO {
         budgetResponse => new Budget(budgetResponse.data.budget));
   }
 
-  save(): Promise<void> {
+  save(): Promise<Budget> {
     return Promise.reject('Save not supported');
   }
 
-  update(): Promise<void> {
+  update(): Promise<Budget> {
     return Promise.reject('Update not supported');
   }
 
-  delete(): Promise<void> {
+  delete(): Promise<Budget> {
     return Promise.reject('Delete not supported');
+  }
+
+  saveAll(): Promise<Budget[]> {
+    return Promise.reject('SaveAll not supported');
   }
 }

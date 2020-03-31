@@ -1,17 +1,17 @@
 import {Transaction} from '../../beans/transaction';
 import {SheetsService} from '../../service/sheets';
 import {SheetRangeBuilder} from '../../sheet_range';
-import {TransactionsDAO} from '../interface/transactions';
+import {ChildDAO} from '../interfaces';
 
 
-export class SheetsTransactionsDAO implements TransactionsDAO {
+export class SheetsTransactionsDAO implements ChildDAO<Transaction> {
   constructor(
       readonly sheetsService: SheetsService<Transaction>,
       readonly sheetRangeBuilder: SheetRangeBuilder) {
     this.sheetRangeBuilder.withSheetPrefix('Transactions');
   }
 
-  getAllInBudget(b_id: string): Promise<Transaction[]> {
+  getAllForParent(b_id: string): Promise<Transaction[]> {
     return this.sheetsService.getAllForParent(b_id);
   }
 

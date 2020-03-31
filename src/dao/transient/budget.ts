@@ -2,9 +2,9 @@ import {BudgetSummary} from 'ynab';
 
 import {Budget} from '../../beans/budget';
 import {fromNullable} from '../../util/option';
-import {BudgetDAO} from '../interface/budget';
+import {TopLevelDAO} from '../interfaces';
 
-export class TransientBudgetDAO implements BudgetDAO {
+export class TransientBudgetDAO implements TopLevelDAO<Budget> {
   readonly budgets: Map<string, Budget>;
 
   constructor(budgets: Map<string, BudgetSummary>) {
@@ -24,20 +24,20 @@ export class TransientBudgetDAO implements BudgetDAO {
         .then(b => b.unwrap());
   }
 
-  save(budget: Budget): Promise<void> {
+  save(budget: Budget): Promise<Budget> {
     if (this.budgets.has(budget.id)) {
       return Promise.reject('Budget already exists');
     }
     this.budgets.set(budget.id, budget);
-    return Promise.resolve();
+    return Promise.resolve(budget);
   }
 
-  update(budget: Budget): Promise<void> {
+  update(budget: Budget): Promise<Budget> {
     if (!this.budgets.has(budget.id)) {
       return Promise.reject('Budget does not already exist');
     }
     this.budgets.set(budget.id, budget);
-    return Promise.resolve();
+    return Promise.resolve(budget);
   }
 
   delete(id: string): Promise<void> {
@@ -46,5 +46,9 @@ export class TransientBudgetDAO implements BudgetDAO {
     }
     this.budgets.delete(id);
     return Promise.resolve();
+  }
+
+  saveAll(budgets: Budget[]): Promise<Budget[]> {
+    return Promise.all(budgets.map(b => this.save(b)));
   }
 }

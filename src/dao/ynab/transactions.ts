@@ -2,12 +2,12 @@ import {API} from 'ynab';
 
 import {Transaction} from '../../beans/transaction';
 import {fromNullable} from '../../util/option';
-import {TransactionsDAO} from '../interface/transactions';
+import {ChildDAO} from '../interfaces';
 
-export class YnabTransactionsDAO implements TransactionsDAO {
+export class YnabTransactionsDAO implements ChildDAO<Transaction> {
   constructor(readonly ynabAPI: API) {}
 
-  getAllInBudget(b_id: string): Promise<Transaction[]> {
+  getAllForParent(b_id: string): Promise<Transaction[]> {
     return this.ynabAPI.transactions.getTransactions(b_id).then(
         resp => resp.data.transactions.map((trans) => new Transaction(trans)));
   }

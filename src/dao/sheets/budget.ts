@@ -2,9 +2,9 @@ import {sheets_v4} from 'googleapis';
 
 import {Budget} from '../../beans/budget';
 import {SheetRange} from '../../sheet_range';
-import {BudgetDAO} from '../interface/budget';
+import {TopLevelDAO} from '../interfaces';
 
-export class SheetsBudgetDAO implements BudgetDAO {
+export class SheetsBudgetDAO implements TopLevelDAO<Budget> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheet: SheetRange) {}
 
@@ -24,7 +24,7 @@ export class SheetsBudgetDAO implements BudgetDAO {
     throw new Error('Not implemented, try using cached service.');
   }
 
-  save(budget: Budget): Promise<void> {
+  save(budget: Budget): Promise<Budget> {
     return this.sheetsService.spreadsheets.values
         .append({
           ...this.sheet,
@@ -35,14 +35,18 @@ export class SheetsBudgetDAO implements BudgetDAO {
             ],
           }
         })
-        .then();
+        .then(() => budget);
   }
 
-  update(): Promise<void> {
+  update(): Promise<Budget> {
     throw new Error('Not implemented');
   }
 
   delete(): Promise<void> {
+    throw new Error('Not implemented');
+  }
+
+  saveAll(): Promise<Budget[]> {
     throw new Error('Not implemented');
   }
 }
