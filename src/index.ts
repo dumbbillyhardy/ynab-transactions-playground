@@ -6,10 +6,8 @@ import {API} from 'ynab';
 
 import {Budget} from './beans/budget';
 import {Transaction} from './beans/transaction';
-import {SheetsBudgetDAO} from './dao/sheets/budget';
-import {SheetsTransactionsDAO} from './dao/sheets/transactions';
+import {SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
-import {SheetsChildService, SheetsTopLevelService} from './service/sheets';
 import {SheetRangeBuilder} from './sheet_range';
 
 // If modifying these scopes, delete token.json.
@@ -41,24 +39,20 @@ fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
         const budgetRangeBuilder =
             new SheetRangeBuilder(budgetRange, spreadsheetId)
                 .withSheetPrefix('Budgets');
-        const budgetSheetsHelper = new SheetsTopLevelService<Budget>(
+        const sheetsBudgetService = new SheetsBudgetDAO(
             sheets, budgetRangeBuilder, Budget.fromSheetsArray,
             (b: Budget) => b.toSheetsArray());
-        const sheetsBudgetService = new SheetsBudgetDAO(
-            budgetSheetsHelper, {spreadsheetId, range: budgetRange});
 
         // Transactions
         const transactionsRangeBuilder =
             new SheetRangeBuilder(transactionsRange, transSpreadsheetId)
                 .withSheetPrefix('Transactions');
-        const transactionsSheetsHelper = new SheetsChildService<Transaction>(
+        const sheetsTransactionsService = new SheetsTransactionsDAO(
             sheets, transactionsRangeBuilder, Transaction.fromSheetsArray,
             (parent_id: string, t: Transaction) => {
               parent_id;
               return t.toAspire();
             });
-        const sheetsTransactionsService = new SheetsTransactionsDAO(
-            transactionsSheetsHelper, transactionsRangeBuilder);
 
         return sheetsBudgetService.getAll().then((budgets) => {
           return Promise.all(

@@ -1,9 +1,9 @@
 import {sheets_v4} from 'googleapis';
 
-import {SheetRangeBuilder} from '../sheet_range';
-import {ArbitraryDataChildStore, ArbitraryDataTopLevelStore} from './interfaces';
+import {SheetRangeBuilder} from '../../sheet_range';
+import {ChildDAO, TopLevelDAO} from '../interfaces';
 
-export class SheetsTopLevelService<T> implements ArbitraryDataTopLevelStore<T> {
+export class SheetsTopLevelDAO<T> implements TopLevelDAO<T> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets,
       readonly sheetRangeBuilder: SheetRangeBuilder,
@@ -45,7 +45,7 @@ export class SheetsTopLevelService<T> implements ArbitraryDataTopLevelStore<T> {
   }
 }
 
-export class SheetsChildService<T> implements ArbitraryDataChildStore<T> {
+export class SheetsChildDAO<T> implements ChildDAO<T> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets,
       readonly sheetRangeBuilder: SheetRangeBuilder,
