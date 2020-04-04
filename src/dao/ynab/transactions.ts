@@ -1,6 +1,6 @@
 import {API} from 'ynab';
 
-import {Transaction} from '../../beans/transaction';
+import {Transaction} from '../../beans';
 import {fromNullable} from '../../util/option';
 import {ChildDAO} from '../interfaces';
 

@@ -4,8 +4,8 @@ import {google} from 'googleapis';
 import * as readline from 'readline';
 import {API} from 'ynab';
 
-import {Budget} from './beans/budget';
-import {Transaction} from './beans/transaction';
+import {Budget} from './beans';
+import {Transaction} from './beans';
 import {SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
 import {SheetRangeBuilder} from './sheet_range';

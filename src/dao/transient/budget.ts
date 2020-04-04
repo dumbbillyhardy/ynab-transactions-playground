@@ -1,6 +1,6 @@
 import {BudgetSummary} from 'ynab';
 
-import {Budget} from '../../beans/budget';
+import {Budget} from '../../beans';
 import {fromNullable} from '../../util/option';
 import {TopLevelDAO} from '../interfaces';
 

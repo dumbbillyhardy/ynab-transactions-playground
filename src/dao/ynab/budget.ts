@@ -1,6 +1,6 @@
 import {API} from 'ynab';
 
-import {Budget} from '../../beans/budget';
+import {Budget} from '../../beans';
 import {TopLevelDAO} from '../interfaces';
 
 export class YnabBudgetDAO implements TopLevelDAO<Budget> {
