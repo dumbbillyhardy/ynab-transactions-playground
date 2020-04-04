@@ -1,12 +1,12 @@
 import {Transaction} from '../../beans/transaction';
-import {SheetsService} from '../../service/sheets';
+import {ArbitraryDataChildStore} from '../../service/interfaces';
 import {SheetRangeBuilder} from '../../sheet_range';
 import {ChildDAO} from '../interfaces';
 
 
 export class SheetsTransactionsDAO implements ChildDAO<Transaction> {
   constructor(
-      readonly sheetsService: SheetsService<Transaction>,
+      readonly sheetsService: ArbitraryDataChildStore<Transaction>,
       readonly sheetRangeBuilder: SheetRangeBuilder) {
     this.sheetRangeBuilder.withSheetPrefix('Transactions');
   }
@@ -20,11 +20,11 @@ export class SheetsTransactionsDAO implements ChildDAO<Transaction> {
   }
 
   save(b_id: string, transaction: Transaction): Promise<Transaction> {
-    return this.sheetsService.save(transaction.transaction, b_id);
+    return this.sheetsService.save(b_id, transaction);
   }
 
-  update(): Promise<Transaction> {
-    throw new Error('Not implemented');
+  update(b_id: string, transaction: Transaction): Promise<Transaction> {
+    return this.sheetsService.update(b_id, transaction);
   }
 
   delete(): Promise<Transaction> {
@@ -32,6 +32,7 @@ export class SheetsTransactionsDAO implements ChildDAO<Transaction> {
   }
 
   saveAll(b_id: string, transactions: Transaction[]): Promise<Transaction[]> {
-    return this.sheetsService.saveAll(transactions, b_id);
+    b_id;
+    return this.sheetsService.saveAll(b_id, transactions);
   }
 }

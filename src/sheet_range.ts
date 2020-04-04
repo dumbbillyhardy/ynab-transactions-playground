@@ -15,8 +15,6 @@ export class SheetRangeBuilder {
   }
 
   withSheet(sheet: string): SheetRangeBuilder {
-    this.sheet;
-    this.sheetPrefix;
     this.sheet = sheet;
     return this;
   }

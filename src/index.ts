@@ -9,7 +9,7 @@ import {Transaction} from './beans/transaction';
 import {SheetsBudgetDAO} from './dao/sheets/budget';
 import {SheetsTransactionsDAO} from './dao/sheets/transactions';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
-import {SheetsService} from './service/sheets';
+import {SheetsChildService, SheetsTopLevelService} from './service/sheets';
 import {SheetRangeBuilder} from './sheet_range';
 
 // If modifying these scopes, delete token.json.
@@ -20,8 +20,9 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json';
 
 const spreadsheetId = '19tIbdPyrwrb_pLsp5QTV6y24RpptC9U-86agbmvupPI';
-const budgetRange = 'Budgets!A1:D';
-const transactionsRange = 'A1:O';
+const transSpreadsheetId = '1o4XJt1vCImrj2AR7IYnTJvz1JdVQhmhAE3aOsw6KfHQ';
+const budgetRange = 'A2:D';
+const transactionsRange = 'B9:G';
 const accessToken = process.argv[2];
 
 const ynabAPI = new API(accessToken);
@@ -35,28 +36,39 @@ fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
   authorize(JSON.parse(content))
       .then((auth) => {
         const sheets = google.sheets({version: 'v4', auth});
-        const sheetsBudgetService =
-            new SheetsBudgetDAO(sheets, {spreadsheetId, range: budgetRange});
-        const rangeBuilder =
-            new SheetRangeBuilder(transactionsRange, spreadsheetId);
-        const sheetsService = new SheetsService<Transaction>(
-            sheets, rangeBuilder, Transaction.fromSheetsArray,
-            (t: Transaction, b_id?: string) => t.toSheetsArray(b_id!));
-        const sheetsTransactionsService =
-            new SheetsTransactionsDAO(sheetsService, rangeBuilder);
+
+        // Budget
+        const budgetRangeBuilder =
+            new SheetRangeBuilder(budgetRange, spreadsheetId)
+                .withSheetPrefix('Budgets');
+        const budgetSheetsHelper = new SheetsTopLevelService<Budget>(
+            sheets, budgetRangeBuilder, Budget.fromSheetsArray,
+            (b: Budget) => b.toSheetsArray());
+        const sheetsBudgetService = new SheetsBudgetDAO(
+            budgetSheetsHelper, {spreadsheetId, range: budgetRange});
+
+        // Transactions
+        const transactionsRangeBuilder =
+            new SheetRangeBuilder(transactionsRange, transSpreadsheetId)
+                .withSheetPrefix('Transactions');
+        const transactionsSheetsHelper = new SheetsChildService<Transaction>(
+            sheets, transactionsRangeBuilder, Transaction.fromSheetsArray,
+            (parent_id: string, t: Transaction) => {
+              parent_id;
+              return t.toAspire();
+            });
+        const sheetsTransactionsService = new SheetsTransactionsDAO(
+            transactionsSheetsHelper, transactionsRangeBuilder);
+
         return sheetsBudgetService.getAll().then((budgets) => {
-          let billy: Budget|undefined;
-          for (const b of budgets) {
-            if (b.name === 'Marissa') {
-              billy = b;
-              break;
-            }
-          }
-          return transactionsService.getAllInBudget(billy!.id).then(
-              (transactions) => {
-                return sheetsTransactionsService.saveAll(
-                    billy!.id, transactions);
-              });
+          return Promise.all(
+              budgets.filter(b => b.name === 'Billy')
+                  .map(
+                      b => transactionsService.getAllForParent(b.id).then(
+                          (transactions) => {
+                            return sheetsTransactionsService.saveAll(
+                                b.id, transactions);
+                          })));
         });
       })
       .catch(console.log);
