@@ -32,7 +32,7 @@ export class Transaction {
   }
 
   get amount(): number {
-    return this.transaction.amount;
+    return this.transaction.amount / 1000;
   };
 
   get inflow(): number {
@@ -92,10 +92,14 @@ export class Transaction {
     return this.transaction.import_id ?? '';
   }
 
-  toAspire(): string {
-    return `${this.date},${this.inflow / 1000},${this.outflow / 1000},${
-        this.category_name},${this.account_name},${this.memo},${this.cleared},${
-        this.approved},${this.payee_name}`;
+  toAspire(): any[] {
+    return [
+      this.date, this.inflow, this.outflow,
+      this.category_name === 'Immediate Income SubCategory' ?
+          'Available to budget' :
+          this.category_name,
+      this.account_name, this.memo
+    ] as any[];
   }
 
   toSaveObject(): SaveTransaction {

@@ -39,4 +39,17 @@ export class Budget {
   get last_month() {
     return this.budget.last_month;
   }
+
+  toSheetsArray(): any[] {
+    return [this.id, this.name, this.first_month, this.last_month]
+  }
+
+  static fromSheetsArray(row: any[]): Budget {
+    return new Budget({
+      id: row[0],
+      name: row[1],
+      first_month: row[2],
+      last_month: row[3],
+    });
+  }
 }
