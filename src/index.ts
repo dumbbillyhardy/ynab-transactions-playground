@@ -5,6 +5,7 @@ import * as readline from 'readline';
 import {API} from 'ynab';
 
 import {Account, Budget, Transaction} from './beans';
+import {ChildMigrator} from './dao/migrator';
 import {SheetsAccountDAO, SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
 import {SheetRangeBuilder} from './sheet_range';
@@ -25,7 +26,7 @@ const accessToken = process.argv[2];
 
 const ynabAPI = new API(accessToken);
 // const budgetService = new YnabBudgetDAO(ynabAPI);
-const transactionsService = new YnabTransactionsDAO(ynabAPI);
+const ynabTransactionsDAO = new YnabTransactionsDAO(ynabAPI);
 
 // Load client secrets from a local file.
 fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
@@ -66,15 +67,13 @@ fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
               return t.toAspire();
             });
 
+        // Migrator
+        const transactionsMigrator = new ChildMigrator<Transaction>(
+            ynabTransactionsDAO, sheetsTransactionsService);
+
         return sheetsBudgetService.getAll().then((budgets) => {
-          return Promise.all(
-              budgets.filter(b => b.name === 'Billy')
-                  .map(
-                      b => transactionsService.getAllForParent(b.id).then(
-                          (transactions) => {
-                            return sheetsTransactionsService.saveAll(
-                                b.id, transactions);
-                          })));
+          return Promise.all(budgets.filter(b => b.name === 'Billy')
+                                 .map(b => transactionsMigrator.migrate(b.id)));
         });
       })
       .catch(console.log);
