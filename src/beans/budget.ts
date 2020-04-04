@@ -1,18 +1,5 @@
-import {Account} from 'ynab';
+import {AccountData} from './account';
 
-export interface AccountData {
-  id: string;
-  name: string;
-  type: Account.TypeEnum;
-  on_budget: boolean;
-  closed: boolean;
-  note?: string|null;
-  balance: number;
-  cleared_balance: number;
-  uncleared_balance: number;
-  transfer_payee_id: string;
-  deleted: boolean;
-}
 export interface BudgetData {
   id: string;
   name: string;

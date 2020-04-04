@@ -5,6 +5,8 @@ export interface AccountData {
   id: string;
   type: YnabAccount.TypeEnum;
   balance: number;
+  cleared_balance?: number;
+  uncleared_balance?: number;
 }
 
 export class Account {

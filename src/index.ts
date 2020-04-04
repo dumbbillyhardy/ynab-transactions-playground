@@ -4,9 +4,8 @@ import {google} from 'googleapis';
 import * as readline from 'readline';
 import {API} from 'ynab';
 
-import {Budget} from './beans';
-import {Transaction} from './beans';
-import {SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
+import {Account, Budget, Transaction} from './beans';
+import {SheetsAccountDAO, SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
 import {SheetRangeBuilder} from './sheet_range';
 
@@ -20,6 +19,7 @@ const TOKEN_PATH = 'token.json';
 const spreadsheetId = '19tIbdPyrwrb_pLsp5QTV6y24RpptC9U-86agbmvupPI';
 const transSpreadsheetId = '1o4XJt1vCImrj2AR7IYnTJvz1JdVQhmhAE3aOsw6KfHQ';
 const budgetRange = 'A2:D';
+const accountRange = 'A2:D';
 const transactionsRange = 'B9:G';
 const accessToken = process.argv[2];
 
@@ -42,6 +42,18 @@ fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
         const sheetsBudgetService = new SheetsBudgetDAO(
             sheets, budgetRangeBuilder, Budget.fromSheetsArray,
             (b: Budget) => b.toSheetsArray());
+
+        // Accounts
+        const accountRangeBuilder =
+            new SheetRangeBuilder(accountRange, spreadsheetId)
+                .withSheetPrefix('Accounts');
+        const sheetsAccountService = new SheetsAccountDAO(
+            sheets, accountRangeBuilder, Account.fromSheetsArray,
+            (parent_id: string, a: Account) => {
+              parent_id;
+              return a.toSheetsArray();
+            });
+        sheetsAccountService;
 
         // Transactions
         const transactionsRangeBuilder =
