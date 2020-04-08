@@ -2,16 +2,8 @@ import {promises as fs} from 'fs';
 import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
 import * as readline from 'readline';
+import {Credentials} from './config_spec';
 
-export interface ClientInfo {
-  client_secret: string;
-  client_id: string;
-  redirect_uris: string[];
-}
-
-export interface Credentials {
-  installed: ClientInfo;
-}
 
 export interface CredentialStorage {
   read(): Promise<Credentials>;
