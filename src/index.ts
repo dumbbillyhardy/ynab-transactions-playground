@@ -1,14 +1,14 @@
 import * as fs from 'fs';
-import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
-import * as readline from 'readline';
 import {API} from 'ynab';
 
 import {Account, Budget, Transaction} from './beans';
 import {ChildMigrator} from './dao/migrator';
 import {SheetsAccountDAO, SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
+import {YnabAccountsDAO} from './dao/ynab/accounts';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
-import {SheetRangeBuilder} from './sheet_range';
+import {SheetConfig} from './sheet_config';
+import {FileSystemTokenStorage, SheetsAuth, TokenGenPromptsReadline} from './sheets_auth';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -17,129 +17,79 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 // time.
 const TOKEN_PATH = 'token.json';
 
-const spreadsheetId = '19tIbdPyrwrb_pLsp5QTV6y24RpptC9U-86agbmvupPI';
-const transSpreadsheetId = '1o4XJt1vCImrj2AR7IYnTJvz1JdVQhmhAE3aOsw6KfHQ';
-const budgetRange = 'A2:D';
-const accountRange = 'A2:D';
-const transactionsRange = 'B9:G';
+const customSpreadsheetId = '19tIbdPyrwrb_pLsp5QTV6y24RpptC9U-86agbmvupPI';
+const customBudgetSheetConfig =
+    new SheetConfig(customSpreadsheetId, 'Budgets', 'A', 'D', 2);
+const customTransactionsSheetConfig =
+    new SheetConfig(customSpreadsheetId, 'Transactions', 'B', 'G', 9);
+const aspireSpreadsheetId = '1o4XJt1vCImrj2AR7IYnTJvz1JdVQhmhAE3aOsw6KfHQ';
+const customAccountsSheetConfig =
+    new SheetConfig(aspireSpreadsheetId, 'Configuration', 'H', 'H', 9, 23);
+
 const accessToken = process.argv[2];
 
 const ynabAPI = new API(accessToken);
 // const budgetService = new YnabBudgetDAO(ynabAPI);
 const ynabTransactionsDAO = new YnabTransactionsDAO(ynabAPI);
+const ynabAccountsDAO = new YnabAccountsDAO(ynabAPI);
+
+
 
 // Load client secrets from a local file.
-fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Google Sheets API.
-  authorize(JSON.parse(content))
-      .then((auth) => {
-        const sheets = google.sheets({version: 'v4', auth});
-
-        // Budget
-        const budgetRangeBuilder =
-            new SheetRangeBuilder(budgetRange, spreadsheetId)
-                .withSheetPrefix('Budgets');
-        const sheetsBudgetService = new SheetsBudgetDAO(
-            sheets, budgetRangeBuilder, Budget.fromSheetsArray,
-            (b: Budget) => b.toSheetsArray());
-
-        // Accounts
-        const accountRangeBuilder =
-            new SheetRangeBuilder(accountRange, spreadsheetId)
-                .withSheetPrefix('Accounts');
-        const sheetsAccountService = new SheetsAccountDAO(
-            sheets, accountRangeBuilder, Account.fromSheetsArray,
-            (parent_id: string, a: Account) => {
-              parent_id;
-              return a.toSheetsArray();
-            });
-        sheetsAccountService;
-
-        // Transactions
-        const transactionsRangeBuilder =
-            new SheetRangeBuilder(transactionsRange, transSpreadsheetId)
-                .withSheetPrefix('Transactions');
-        const sheetsTransactionsService = new SheetsTransactionsDAO(
-            sheets, transactionsRangeBuilder, Transaction.fromSheetsArray,
-            (parent_id: string, t: Transaction) => {
-              parent_id;
-              return t.toAspire();
-            });
-
-        // Migrator
-        const transactionsMigrator = new ChildMigrator<Transaction>(
-            ynabTransactionsDAO, sheetsTransactionsService);
-
-        return sheetsBudgetService.getAll().then((budgets) => {
-          return Promise.all(budgets.filter(b => b.name === 'Billy')
-                                 .map(b => transactionsMigrator.migrate(b.id)));
-        });
-      })
-      .catch(console.log);
-});
-
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- * @param {Object} credentials The authorization client credentials.
- */
-function authorize(credentials): Promise<OAuth2Client> {
-  const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client =
-      new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-
-  // Check if we have previously stored a token.
-  return new Promise<OAuth2Client>((res) => {
-    fs.readFile(TOKEN_PATH, {encoding: 'utf8'}, (err, token) => {
-      if (err) {
-        res(getNewToken(oAuth2Client));
-        return;
-      }
-      oAuth2Client.setCredentials(JSON.parse(token));
-      res(oAuth2Client);
-    });
+new Promise<string>((res, rej) => {
+  fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
+    if (err) {
+      console.log('Error loading client secret file:', err);
+      rej(err);
+    }
+    res(content);
   });
-}
+})
+    .then((content) => {
+      const credentials = JSON.parse(content);
+      const tokenStorage = new FileSystemTokenStorage(TOKEN_PATH, credentials);
+      const tokenGenPrompts = new TokenGenPromptsReadline();
+      const sheetsAuth = new SheetsAuth(SCOPES, tokenStorage, tokenGenPrompts);
+      // Authorize a client with credentials, then call the Google Sheets
+      // API.
+      return sheetsAuth.authorize(credentials);
+    })
+    .then((auth) => {
+      const sheets = google.sheets({version: 'v4', auth});
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token
- *     for.
- * @param {getEventsCallback} callback The callback for the authorized client.
- */
-function getNewToken(oAuth2Client): Promise<OAuth2Client> {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-  });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  return new Promise<OAuth2Client>((res, rej) => {
-    rl.question('Enter the code from that page here: ', (code) => {
-      rl.close();
-      oAuth2Client.getToken(code, (err, token) => {
-        if (err) {
-          console.error('Error while trying to retrieve access token', err);
-          rej();
-          return;
-        }
-        oAuth2Client.setCredentials(token);
-        // Store the token to disk for later program executions
-        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-          if (err) {
-            console.error(err);
-            rej();
-            return;
-          }
-          console.log('Token stored to ', TOKEN_PATH);
-        });
-        res(oAuth2Client);
+      // Budget
+      const sheetsBudgetService = new SheetsBudgetDAO(
+          sheets, customBudgetSheetConfig.toSheetRange(),
+          Budget.fromSheetsArray, (b: Budget) => b.toSheetsArray());
+
+      // Accounts
+      const sheetsAccountsService = new SheetsAccountDAO(
+          sheets, customAccountsSheetConfig.toSheetRange(),
+          Account.fromSheetsArray, (parent_id: string, a: Account) => {
+            parent_id;
+            return a.toAspireArray();
+          });
+      const accountsMigrator =
+          new ChildMigrator<Account>(ynabAccountsDAO, sheetsAccountsService);
+
+      // Transactions
+      const sheetsTransactionsService = new SheetsTransactionsDAO(
+          sheets, customTransactionsSheetConfig.toSheetRange(),
+          Transaction.fromSheetsArray, (parent_id: string, t: Transaction) => {
+            parent_id;
+            return t.toAspire();
+          });
+
+      // Migrator
+      const transactionsMigrator = new ChildMigrator<Transaction>(
+          ynabTransactionsDAO, sheetsTransactionsService);
+      transactionsMigrator;
+
+      return sheetsBudgetService.getAll().then((budgets) => {
+        return Promise.all(budgets
+                               .filter(b => b.name === 'Billy')
+                               //.map(b => transactionsMigrator.migrate(b.id)));
+                               .map(b => accountsMigrator.migrate(b.id)));
       });
-    });
-  });
-}
+    })
+    .catch(console.log);

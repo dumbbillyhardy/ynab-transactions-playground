@@ -1,18 +1,16 @@
 import {sheets_v4} from 'googleapis';
 
-import {SheetRangeBuilder} from '../../sheet_range';
+import {SheetRange} from '../../sheet_range';
 import {ChildDAO, TopLevelDAO} from '../interfaces';
 
 export class SheetsTopLevelDAO<T> implements TopLevelDAO<T> {
   constructor(
-      readonly sheetsService: sheets_v4.Sheets,
-      readonly sheetRangeBuilder: SheetRangeBuilder,
+      readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => T,
       readonly serailizer: (o: T) => any[]) {}
 
   getAll(): Promise<T[]> {
-    return this.sheetsService.spreadsheets.values
-        .get(this.sheetRangeBuilder.build())
+    return this.sheetsService.spreadsheets.values.get(this.sheetRange)
         .then((val) => val.data.values!.map(row => this.factory(row)));
   }
 
@@ -35,7 +33,7 @@ export class SheetsTopLevelDAO<T> implements TopLevelDAO<T> {
   saveAll(rows: T[]): Promise<T[]> {
     return this.sheetsService.spreadsheets.values
         .append({
-          ...this.sheetRangeBuilder.build(),
+          ...this.sheetRange,
           valueInputOption: 'USER_ENTERED',
           requestBody: {
             values: rows.map(r => this.serailizer(r)),
@@ -47,15 +45,13 @@ export class SheetsTopLevelDAO<T> implements TopLevelDAO<T> {
 
 export class SheetsChildDAO<T> implements ChildDAO<T> {
   constructor(
-      readonly sheetsService: sheets_v4.Sheets,
-      readonly sheetRangeBuilder: SheetRangeBuilder,
+      readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => T,
       readonly serailizer: (parent_id: string, o: T) => any[]) {}
 
   getAllForParent(parent_id: string): Promise<T[]> {
-    this.sheetRangeBuilder.withSheet(parent_id);
-    return this.sheetsService.spreadsheets.values
-        .get(this.sheetRangeBuilder.build())
+    parent_id;
+    return this.sheetsService.spreadsheets.values.get(this.sheetRange)
         .then((val) => val.data.values!.map(row => this.factory(row)));
   }
 
@@ -76,10 +72,9 @@ export class SheetsChildDAO<T> implements ChildDAO<T> {
   }
 
   saveAll(parent_id: string, rows: T[]): Promise<T[]> {
-    this.sheetRangeBuilder.withSheet(parent_id);
     return this.sheetsService.spreadsheets.values
         .append({
-          ...this.sheetRangeBuilder.build(),
+          ...this.sheetRange,
           valueInputOption: 'USER_ENTERED',
           requestBody: {
             values: rows.map(r => this.serailizer(parent_id, r)),
