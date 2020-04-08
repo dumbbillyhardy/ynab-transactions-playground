@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import {promises as fs} from 'fs';
 import {google} from 'googleapis';
 import {API} from 'ynab';
 
@@ -31,15 +31,10 @@ const ynabAccountsDAO = new YnabAccountsDAO(ynabAPI);
 
 
 // Load client secrets from a local file.
-new Promise<string>((res, rej) => {
-  fs.readFile('credentials.json', {encoding: 'utf8'}, (err, content) => {
-    if (err) {
-      console.log('Error loading client secret file:', err);
-      rej(err);
-    }
-    res(content);
-  });
-})
+fs.readFile('credentials.json', {encoding: 'utf8'})
+    .catch((err) => {
+      throw new Error('Error loading client secret file:' + err);
+    })
     .then((content) => {
       const credentials = JSON.parse(content);
       const tokenStorage = new FileSystemTokenStorage(TOKEN_PATH, credentials);

@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import {promises as fs} from 'fs';
 import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
 import * as readline from 'readline';
@@ -30,30 +30,24 @@ export class FileSystemTokenStorage implements TokenStorage {
   ) {}
 
   read(): Promise<OAuth2Client> {
-    return new Promise<OAuth2Client>((res, rej) => {
-      // Load client secrets from a local file.
-      fs.readFile(this.token_file, {encoding: 'utf8'}, (err, token) => {
-        if (err) return rej(`Error loading client secret file: ${err}`);
-        const oAuth2Client = new google.auth.OAuth2(
-            this.credentials.installed.client_id,
-            this.credentials.installed.client_secret,
-            this.credentials.installed.redirect_uris[0]);
-        oAuth2Client.setCredentials(JSON.parse(token));
-        res(oAuth2Client);
-      });
-    });
+    // Load client secrets from a local file.
+    return fs.readFile(this.token_file, {encoding: 'utf8'})
+        .catch((err) => {
+          throw new Error(`Error loading client secret file: ${err}`);
+        })
+        .then((token) => {
+          const oAuth2Client = new google.auth.OAuth2(
+              this.credentials.installed.client_id,
+              this.credentials.installed.client_secret,
+              this.credentials.installed.redirect_uris[0]);
+          oAuth2Client.setCredentials(JSON.parse(token));
+          return oAuth2Client;
+        });
   }
 
   write(token: OAuth2Client): Promise<void> {
-    return new Promise<void>((res, rej) => {
-      fs.writeFile(this.token_file, JSON.stringify(token), (err) => {
-        if (err) {
-          rej(err);
-          return;
-        }
-        console.log('Token stored to ', this.token_file);
-        res();
-      });
+    return fs.writeFile(this.token_file, JSON.stringify(token)).then(() => {
+      console.log('Token stored to ', this.token_file);
     });
   }
 }
