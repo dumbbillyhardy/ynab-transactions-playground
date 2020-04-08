@@ -1,6 +1,6 @@
 import {sheets_v4} from 'googleapis';
 
-import {SheetRange} from '../../sheet_range';
+import {SheetRange} from '../../sheet_config';
 import {ChildDAO, TopLevelDAO} from '../interfaces';
 
 export class SheetsTopLevelDAO<T> implements TopLevelDAO<T> {

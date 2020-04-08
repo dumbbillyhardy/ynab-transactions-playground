@@ -1,4 +1,7 @@
-import {SheetRange} from './sheet_range';
+export interface SheetRange {
+  range: string;
+  spreadsheetId: string;
+}
 
 export interface SheetConfigData {
   readonly spreadsheetId: string;

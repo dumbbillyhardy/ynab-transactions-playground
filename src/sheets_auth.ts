@@ -2,8 +2,7 @@ import {promises as fs} from 'fs';
 import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
 import * as readline from 'readline';
-import {Credentials} from './config_spec';
-
+import {Credentials} from './config';
 
 export interface CredentialStorage {
   read(): Promise<Credentials>;
