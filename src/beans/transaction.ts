@@ -92,13 +92,25 @@ export class Transaction {
     return this.transaction.import_id ?? '';
   }
 
+  get aspireCleared(): string {
+    if (this.cleared === 'cleared' || this.cleared === 'reconciled') {
+      return '✅';
+    } else {
+      return '🅿️';
+    }
+  }
+
   toAspire(): any[] {
     return [
-      this.date, this.inflow, this.outflow,
+      this.date,
+      this.outflow,
+      this.inflow,
       this.category_name === 'Immediate Income SubCategory' ?
           'Available to budget' :
           this.category_name,
-      this.account_name, this.memo
+      this.account_name,
+      this.memo,
+      this.aspireCleared,
     ] as any[];
   }
 

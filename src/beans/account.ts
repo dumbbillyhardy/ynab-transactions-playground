@@ -3,10 +3,11 @@ import {Account as YnabAccount} from 'ynab';
 export interface AccountData {
   name: string;
   id: string;
-  type: YnabAccount.TypeEnum;
+  type?: YnabAccount.TypeEnum;
   balance: number;
   cleared_balance?: number;
   uncleared_balance?: number;
+  closed: boolean;
 }
 
 export class Account {
@@ -38,6 +39,7 @@ export class Account {
       name: row[1] as string,
       type: YnabAccount.TypeEnum[row[2] as string],
       balance: (row[3] as number) * 1000,
+      closed: false,
     });
   }
 

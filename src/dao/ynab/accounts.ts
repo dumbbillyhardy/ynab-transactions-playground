@@ -8,7 +8,8 @@ export class YnabAccountsDAO implements ChildDAO<Account> {
 
   getAllForParent(b_id: string): Promise<Account[]> {
     return this.ynabAPI.accounts.getAccounts(b_id).then(resp => {
-      return resp.data.accounts.map(a => new Account(a));
+      return resp.data.accounts.map(a => new Account(a))
+          .filter(a => !a.account.closed);
     });
   }
 
