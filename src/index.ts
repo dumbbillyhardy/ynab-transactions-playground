@@ -3,6 +3,7 @@ import {google} from 'googleapis';
 import {API} from 'ynab';
 
 import {Account, Budget, Transaction} from './beans';
+import {config} from './config';
 import {ChildMigrator} from './dao/migrator';
 import {SheetsAccountDAO, SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabAccountsDAO} from './dao/ynab/accounts';
@@ -10,21 +11,15 @@ import {YnabTransactionsDAO} from './dao/ynab/transactions';
 import {SheetConfig} from './sheet_config';
 import {FileSystemTokenStorage, SheetsAuth, TokenGenPromptsReadline} from './sheets_auth';
 
-// If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH = 'token.json';
 
-const customSpreadsheetId = '19tIbdPyrwrb_pLsp5QTV6y24RpptC9U-86agbmvupPI';
-const customBudgetSheetConfig =
-    new SheetConfig(customSpreadsheetId, 'Budgets', 'A', 'D', 2);
+const SCOPES = config.sheetsAuth.scopes;
+const TOKEN_PATH = config.sheetsAuth.tokenPath;
+
+const customBudgetSheetConfig = new SheetConfig(config.sheetsStorage.budget);
 const customTransactionsSheetConfig =
-    new SheetConfig(customSpreadsheetId, 'Transactions', 'B', 'G', 9);
-const aspireSpreadsheetId = '1o4XJt1vCImrj2AR7IYnTJvz1JdVQhmhAE3aOsw6KfHQ';
+    new SheetConfig(config.sheetsStorage.transactions);
 const customAccountsSheetConfig =
-    new SheetConfig(aspireSpreadsheetId, 'Configuration', 'H', 'H', 9, 23);
+    new SheetConfig(config.aspireStorage.accounts);
 
 const accessToken = process.argv[2];
 
