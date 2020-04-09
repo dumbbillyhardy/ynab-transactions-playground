@@ -1,0 +1,60 @@
+{
+  "sheetsAuth": {
+    "credentials": {
+      "installed": {
+        "client_id":
+            "client_id_from_sheets",
+        "project_id": "project_id_from_sheets",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url":
+            "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "client_secret_from_sheets",
+        "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"]
+      }
+    },
+    "scopes": ["https://www.googleapis.com/auth/spreadsheets"],
+    "tokenPath": "token.json"
+  },
+  "sheetsStorage": {
+    "budget": {
+      "spreadsheetId": "spreadsheet_id",
+      "worksheet": "Budgets",
+      "startColumn": "A",
+      "endColumn": "D",
+      "startRow": 2
+    },
+    "transactions": {
+      "spreadsheetId": "spreadsheet_id",
+      "worksheet": "Transactions",
+      "startColumn": "A",
+      "endColumn": "O",
+      "startRow": 2
+    },
+    "accounts": {
+      "spreadsheetId": "spreadsheet_id",
+      "worksheet": "Accounts",
+      "startColumn": "A",
+      "endColumn": "D",
+      "startRow": 2
+    }
+  },
+  "aspireStorage": {
+    "budget": {},
+    "transactions": {
+      "spreadsheetId": "spreadsheet_id_2",
+      "worksheet": "Transactions",
+      "startColumn": "B",
+      "endColumn": "G",
+      "startRow": 9
+    },
+    "accounts": {
+      "spreadsheetId": "spreadsheet_id_2",
+      "worksheet": "Configuration",
+      "startColumn": "H",
+      "endColumn": "H",
+      "startRow": 9,
+      "endRow": 23
+    }
+  }
+}

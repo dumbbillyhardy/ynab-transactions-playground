@@ -1,5 +1,6 @@
 import {SheetConfigData} from './sheet_config';
 
+// Client info obtained from google sheets.
 export interface ClientInfo {
   client_secret: string;
   client_id: string;
@@ -20,8 +21,16 @@ export interface SheetAuthConfig {
   tokenPath: string;
 }
 
+// SheetConfig for all data in a budget.
+export interface BudgetStorage {
+  budget: SheetConfigData;
+  transactions: SheetConfigData;
+  accounts: SheetConfigData;
+}
+
+// All config for the app to work.
 export interface Config {
   sheetsAuth: SheetAuthConfig;
-  sheetsStorage: {[key: string]: SheetConfigData};
-  aspireStorage: {[key: string]: SheetConfigData};
+  sheetsStorage: BudgetStorage;
+  aspireStorage: BudgetStorage;
 }
