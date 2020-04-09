@@ -4,7 +4,7 @@ export class TopLevelMigrator<T> {
   constructor(
       readonly fromDAO: TopLevelDAO<T>, readonly toDAO: TopLevelDAO<T>) {}
 
-  migrate(last_server_state: number): Promise<T[]> {
+  migrate(last_server_state?: number): Promise<T[]> {
     last_server_state;
     return this.fromDAO.getAll().then((objs) => this.toDAO.saveAll(objs));
   }
