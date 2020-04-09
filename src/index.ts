@@ -2,11 +2,12 @@ import {promises as fs} from 'fs';
 import {google} from 'googleapis';
 import {API} from 'ynab';
 
-import {Account, Budget, Transaction} from './beans';
+import {Account, Budget, CategoryGroup, Transaction} from './beans';
 import {Config} from './config';
-import {ChildMigrator} from './dao/migrator';
-import {SheetsAccountDAO, SheetsBudgetDAO, SheetsTransactionsDAO} from './dao/sheets';
+import {TopLevelMigrator} from './dao/migrator';
+import {SheetsAccountDAO, SheetsBudgetDAO, SheetsCategoriesDAO, SheetsTransactionsDAO} from './dao/sheets';
 import {YnabAccountsDAO} from './dao/ynab/accounts';
+import {YnabCategoriesDAO} from './dao/ynab/categories';
 import {YnabTransactionsDAO} from './dao/ynab/transactions';
 import {SheetConfig} from './sheet_config';
 import {FileSystemTokenStorage, SheetsAuth, TokenGenPromptsReadline} from './sheets_auth';
@@ -28,13 +29,13 @@ fs.readFile('config.json', {encoding: 'utf8'})
           new SheetConfig(config.sheetsStorage.transactions);
       const customAccountsSheetConfig =
           new SheetConfig(config.aspireStorage.accounts);
+      const customCategoriesSheetConfig =
+          new SheetConfig(config.sheetsStorage.categories);
 
       const accessToken = process.argv[2];
 
       const ynabAPI = new API(accessToken);
       // const budgetService = new YnabBudgetDAO(ynabAPI);
-      const ynabTransactionsDAO = new YnabTransactionsDAO(ynabAPI);
-      const ynabAccountsDAO = new YnabAccountsDAO(ynabAPI);
 
       const credentials = config.sheetsAuth.credentials;
       const tokenStorage = new FileSystemTokenStorage(TOKEN_PATH, credentials);
@@ -45,42 +46,44 @@ fs.readFile('config.json', {encoding: 'utf8'})
       return sheetsAuth.authorize(credentials).then((auth) => {
         const sheets = google.sheets({version: 'v4', auth});
 
+        const budget_id = 'f1844444-8147-42d0-8f14-92fcdcdaa710';
+
         // Budget
         const sheetsBudgetService = new SheetsBudgetDAO(
             sheets, customBudgetSheetConfig.toSheetRange(),
             Budget.fromSheetsArray, (b: Budget) => b.toSheetsArray());
+        sheetsBudgetService;
 
         // Accounts
         const sheetsAccountsService = new SheetsAccountDAO(
             sheets, customAccountsSheetConfig.toSheetRange(),
-            Account.fromSheetsArray, (parent_id: string, a: Account) => {
-              parent_id;
-              return a.toAspireArray();
-            });
-        const accountsMigrator =
-            new ChildMigrator<Account>(ynabAccountsDAO, sheetsAccountsService);
+            Account.fromSheetsArray, (a: Account) => a.toAspireArray());
+        const ynabAccountsDAO = new YnabAccountsDAO(ynabAPI, budget_id);
+        const accountsMigrator = new TopLevelMigrator<Account>(
+            ynabAccountsDAO, sheetsAccountsService);
+        accountsMigrator;
 
         // Transactions
         const sheetsTransactionsService = new SheetsTransactionsDAO(
             sheets, customTransactionsSheetConfig.toSheetRange(),
-            Transaction.fromSheetsArray,
-            (parent_id: string, t: Transaction) => {
-              parent_id;
-              return t.toAspire();
-            });
-
-        // Migrator
-        const transactionsMigrator = new ChildMigrator<Transaction>(
+            Transaction.fromSheetsArray, (t: Transaction) => t.toSheetsArray());
+        const ynabTransactionsDAO = new YnabTransactionsDAO(ynabAPI, budget_id);
+        const transactionsMigrator = new TopLevelMigrator<Transaction>(
             ynabTransactionsDAO, sheetsTransactionsService);
         transactionsMigrator;
 
-        return sheetsBudgetService.getAll().then((budgets) => {
-          return Promise.all(
-              budgets
-                  .filter(b => b.name === 'Billy')
-                  //.map(b => transactionsMigrator.migrate(b.id)));
-                  .map(b => accountsMigrator.migrate(b.id)));
-        });
+        // Categories
+        const ynabCategoriesDAO = new YnabCategoriesDAO(ynabAPI, budget_id);
+        const sheetsCategoriesService = new SheetsCategoriesDAO(
+            sheets, customCategoriesSheetConfig.toSheetRange(),
+            () => [] as CategoryGroup[],
+            (cs: CategoryGroup[]) => cs.flatMap(c => c.toSheetsArray()));
+        const catgoriesMigrator = new TopLevelMigrator<CategoryGroup>(
+            ynabCategoriesDAO, sheetsCategoriesService);
+        catgoriesMigrator;
+
+        catgoriesMigrator.migrate();
+        // transactionsMigrator.migrate();
       });
     })
     .catch(console.log);

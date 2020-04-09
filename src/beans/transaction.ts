@@ -133,27 +133,26 @@ export class Transaction {
 
   static fromSheetsArray(row: any[]): Transaction {
     return new Transaction({
-      id: row[1],
-      account_id: row[2],
-      account_name: row[3],
-      date: row[4],
-      amount: row[5],
-      payee_id: row[6],
-      payee_name: row[7],
-      category_id: row[8],
-      category_name: row[9],
-      memo: row[10],
-      cleared: row[11],
-      approved: row[12],
-      flag_color: row[13],
-      import_id: row[14],
+      id: row[0],
+      account_id: row[1],
+      account_name: row[2],
+      date: row[3],
+      amount: row[4],
+      payee_id: row[5],
+      payee_name: row[6],
+      category_id: row[7],
+      category_name: row[8],
+      memo: row[9],
+      cleared: row[10],
+      approved: row[11],
+      flag_color: row[12],
+      import_id: row[13],
       subtransactions: [],
     });
   }
 
-  toSheetsArray(b_id: string): any[] {
+  toSheetsArray(): any[] {
     return [
-      b_id,
       this.id,
       this.account_id,
       this.account_name,

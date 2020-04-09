@@ -1,21 +1,21 @@
 import {API} from 'ynab';
 
 import {Account} from '../../beans/account';
-import {ChildDAO} from '../interfaces';
+import {TopLevelDAO} from '../interfaces';
 
-export class YnabAccountsDAO implements ChildDAO<Account> {
-  constructor(private readonly ynabAPI: API) {}
+export class YnabAccountsDAO implements TopLevelDAO<Account> {
+  constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
-  getAllForParent(b_id: string): Promise<Account[]> {
-    return this.ynabAPI.accounts.getAccounts(b_id).then(resp => {
+  getAll(): Promise<Account[]> {
+    return this.ynabAPI.accounts.getAccounts(this.b_id).then(resp => {
       return resp.data.accounts.map(a => new Account(a))
           .filter(a => !a.account.closed);
     });
   }
 
-  getById(b_id: string, id: string): Promise<Account> {
-    return this.ynabAPI.accounts.getAccountById(b_id, id).then(
-        resp => new Account(resp.data.account));
+  getById(id: string): Promise<Account> {
+    return this.ynabAPI.accounts.getAccountById(this.b_id, id)
+        .then(resp => new Account(resp.data.account));
   }
 
   save(): Promise<Account> {

@@ -1,12 +1,13 @@
-import {Category as CategoryData, CategoryGroupWithCategories as CategoryGroupData} from 'ynab';
+import {Category as YnabCategory} from 'ynab';
 import {fromNullable, Option} from '../util/option';
 
-export interface MutableCategoryGroupData {
-  name: string;
-  categories: Array<Category>;
+export interface CategoryGroupData {
+  id?: string;
+  name?: string;
+  categories: Array<CategoryData>;
 }
 
-export class CategoryGroup implements MutableCategoryGroupData {
+export class CategoryGroup {
   categories: Category[];
 
   constructor(readonly group: CategoryGroupData) {
@@ -21,14 +22,34 @@ export class CategoryGroup implements MutableCategoryGroupData {
     return this.group.id;
   }
 
-  toAspire(): string {
-    return `✦,${this.name}\n${
-        this.categories.map(c => c.toAspire()).join('\n')}`;
+  toAspire(): any[][] {
+    return [['✦', this.name], this.categories.map(c => c.toSheetsArray())];
   }
+
+  toSheetsArray(): any[][] {
+    // return [['✦', this.name], this.categories.map(c => c.toSheetsArray())];
+    return this.categories.map(c => c.toSheetsArray());
+  }
+
+  static fromSheetsArray(table: any[][]): CategoryGroup {
+    return new CategoryGroup({
+      // name: table[0][1] as string,
+      categories: table.map(r => Category.fromSheetsArray(r)),
+    });
+  }
+}
+
+export interface CategoryData extends GoalData {
+  id: string;
+  name: string;
+  budgeted: number;
+  activity: number;
+  balance: number;
 }
 
 export class Category {
   readonly goal: Goal;
+
   constructor(readonly category: CategoryData) {
     this.goal = new Goal(category);
   }
@@ -42,7 +63,8 @@ export class Category {
   }
 
   get budgeted() {
-    return this.category.budgeted;
+    // Get dollars
+    return this.category.budgeted / 1000;
   }
 
   get balance() {
@@ -51,16 +73,31 @@ export class Category {
   }
 
   get activity() {
-    return this.category.activity;
+    // Get dollars
+    return this.category.activity / 1000;
   }
 
-  toAspire(): string {
-    return `✧,${this.name},0`;
+  toAspire(): any[] {
+    return ['✧', this.name, 0];
+  }
+
+  toSheetsArray(): any[] {
+    return [this.id, this.name, this.budgeted, this.activity, this.balance];
+  }
+
+  static fromSheetsArray(row: any[]): Category {
+    return new Category({
+      id: row[0] as string,
+      name: row[1] as string,
+      budgeted: (row[2] as number) * 1000,
+      activity: (row[3] as number) * 1000,
+      balance: (row[4] as number) * 1000,
+    });
   }
 }
 
-interface GoalData {
-  goal_type?: CategoryData.GoalTypeEnum|null;
+export interface GoalData {
+  goal_type?: YnabCategory.GoalTypeEnum|null;
   goal_creation_month?: string|null;
   goal_target?: number|null;
   goal_target_month?: string|null;
@@ -68,7 +105,7 @@ interface GoalData {
 }
 
 export class Goal {
-  readonly goal_type: Option<CategoryData.GoalTypeEnum>;
+  readonly goal_type: Option<YnabCategory.GoalTypeEnum>;
   readonly goal_creation_month: Option<string>;
   readonly goal_target: Option<number>;
   readonly goal_target_month: Option<string>;
