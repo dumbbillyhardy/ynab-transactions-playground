@@ -7,6 +7,30 @@ export interface CategoryGroupData {
   categories: Array<CategoryData>;
 }
 
+export class CategoryGroupSaveObject {
+  readonly id?: string;
+  readonly name?: string;
+  readonly categoryIds: string[];
+
+  constructor(obj: {id?: string, name?: string, categoryIds: string[]}) {
+    this.id = obj.id;
+    this.name = obj.name;
+    this.categoryIds = obj.categoryIds.slice();
+  }
+
+  toSheetsArray(): any[] {
+    return [this.id, this.name];
+  }
+
+  static fromSheetsArray(row: any[]) {
+    return new CategoryGroupSaveObject({
+      id: row[0],
+      name: row[1],
+      categoryIds: [],
+    });
+  }
+}
+
 export class CategoryGroup {
   categories: Category[];
 
@@ -31,10 +55,19 @@ export class CategoryGroup {
     return this.categories.map(c => c.toSheetsArray());
   }
 
-  static fromSheetsArray(table: any[][]): CategoryGroup {
+  static fromSheetsArray(row: any[]): CategoryGroup {
     return new CategoryGroup({
-      // name: table[0][1] as string,
-      categories: table.map(r => Category.fromSheetsArray(r)),
+      id: row[0],
+      name: row[1],
+      categories: [],
+    });
+  }
+
+  toSaveObject() {
+    return new CategoryGroupSaveObject({
+      id: this.id,
+      name: this.name,
+      categoryIds: this.categories.map(c => c.id),
     });
   }
 }
@@ -42,6 +75,7 @@ export class CategoryGroup {
 export interface CategoryData extends GoalData {
   id: string;
   name: string;
+  group_id?: string;
   budgeted: number;
   activity: number;
   balance: number;
@@ -56,6 +90,14 @@ export class Category {
 
   get name() {
     return this.category.name;
+  }
+
+  get group_id() {
+    return this.category.group_id;
+  }
+
+  set group_id(group_id: string|undefined) {
+    this.category.group_id = group_id;
   }
 
   get id() {
@@ -82,7 +124,10 @@ export class Category {
   }
 
   toSheetsArray(): any[] {
-    return [this.id, this.name, this.budgeted, this.activity, this.balance];
+    return [
+      this.group_id, this.id, this.name, this.budgeted, this.activity,
+      this.balance
+    ];
   }
 
   static fromSheetsArray(row: any[]): Category {

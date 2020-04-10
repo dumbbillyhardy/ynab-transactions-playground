@@ -27,6 +27,7 @@ export interface BudgetStorage {
   transactions: SheetConfigData;
   accounts: SheetConfigData;
   categories: SheetConfigData;
+  categoryGroups: SheetConfigData;
 }
 
 // All config for the app to work.
