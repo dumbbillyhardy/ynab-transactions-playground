@@ -29,7 +29,7 @@ fs.readFile('config.json', {encoding: 'utf8'})
       const customTransactionsSheetConfig =
           new SheetConfig(config.sheetsStorage.transactions);
       const customAccountsSheetConfig =
-          new SheetConfig(config.aspireStorage.accounts);
+          new SheetConfig(config.sheetsStorage.accounts);
       const customCategoriesSheetConfig =
           new SheetConfig(config.sheetsStorage.categories);
       const customCategoryGroupsSheetConfig =
@@ -60,7 +60,7 @@ fs.readFile('config.json', {encoding: 'utf8'})
         // Accounts
         const sheetsAccountsService = new SheetsAccountDAO(
             sheets, customAccountsSheetConfig.toSheetRange(),
-            Account.fromSheetsArray, (a: Account) => a.toAspireArray());
+            Account.fromSheetsArray, (a: Account) => a.toSheetsArray());
         const ynabAccountsDAO = new YnabAccountsDAO(ynabAPI, budget_id);
         const accountsMigrator = new TopLevelMigrator<Account>(
             ynabAccountsDAO, sheetsAccountsService);
@@ -76,8 +76,6 @@ fs.readFile('config.json', {encoding: 'utf8'})
         transactionsMigrator;
 
         // Categories
-        const ynabCategoriesDAO = new YnabCategoriesDAO(ynabAPI, budget_id);
-
         const sheetsCategoryGroupsDAO = new SheetsCategoryGroupsDAO(
             sheets, customCategoryGroupsSheetConfig.toSheetRange(),
             CategoryGroupSaveObject.fromSheetsArray,
@@ -87,13 +85,16 @@ fs.readFile('config.json', {encoding: 'utf8'})
             Category.fromSheetsArray, (c: Category) => c.toSheetsArray());
         const sheetsCategoriesDAO = new SheetsCategoriesDAO(
             sheetsCategoryGroupsDAO, sheetsOnlyCategoryDAO);
-        const catgoriesMigrator = new TopLevelMigrator<CategoryGroup>(
+        const ynabCategoriesDAO = new YnabCategoriesDAO(ynabAPI, budget_id);
+        const categoriesMigrator = new TopLevelMigrator<CategoryGroup>(
             ynabCategoriesDAO, sheetsCategoriesDAO);
-        catgoriesMigrator;
+        categoriesMigrator;
 
-        catgoriesMigrator.migrate();
-        // accountsMigrator.migrate();
-        // transactionsMigrator.migrate();
+        return Promise.all([
+          accountsMigrator.migrate(),
+          categoriesMigrator.migrate(),
+          transactionsMigrator.migrate(),
+        ]);
       });
     })
     .catch(console.log);

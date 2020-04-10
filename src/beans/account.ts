@@ -1,5 +1,7 @@
 import {Account as YnabAccount} from 'ynab';
 
+import {fromNullable} from '../util/option';
+
 export interface AccountData {
   name: string;
   id: string;
@@ -8,6 +10,7 @@ export interface AccountData {
   cleared_balance?: number;
   uncleared_balance?: number;
   closed: boolean;
+  transfer_payee_id: string;
 }
 
 export class Account {
@@ -29,8 +32,37 @@ export class Account {
     return this.account.balance / 1000;
   }
 
+  get cleared_balance() {
+    return fromNullable(this.account.cleared_balance)
+        .map(b => b / 1000)
+        .unwrapOr(0);
+  }
+
+  get uncleared_balance() {
+    return fromNullable(this.account.uncleared_balance)
+        .map(b => b / 1000)
+        .unwrapOr(0);
+  }
+
+  get closed() {
+    return this.account.closed;
+  }
+
+  get transfer_payee_id() {
+    return this.account.transfer_payee_id ?? '';
+  }
+
   toSheetsArray(): any[] {
-    return [this.id, this.name, this.type, this.balance];
+    return [
+      this.id,
+      this.name,
+      this.type,
+      this.balance,
+      this.cleared_balance,
+      this.uncleared_balance,
+      this.closed,
+      this.transfer_payee_id,
+    ];
   }
 
   static fromSheetsArray(row: any[]): Account {
@@ -39,7 +71,10 @@ export class Account {
       name: row[1] as string,
       type: YnabAccount.TypeEnum[row[2] as string],
       balance: (row[3] as number) * 1000,
-      closed: false,
+      cleared_balance: row[4],
+      uncleared_balance: row[5],
+      closed: row[6],
+      transfer_payee_id: row[7],
     });
   }
 

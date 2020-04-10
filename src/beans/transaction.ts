@@ -1,6 +1,6 @@
 import {SaveTransaction, SubTransaction, TransactionDetail} from 'ynab';
 
-import {fromNullable} from '../util/option';
+import {fromNullable, Option} from '../util/option';
 
 export interface TransactionData {
   id: string;
@@ -17,11 +17,24 @@ export interface TransactionData {
   approved: boolean;
   flag_color?: TransactionDetail.FlagColorEnum|null;
   import_id?: string|null;
+  transfer_account_id?: string|null;
+  transfer_transaction_id?: string|null;
+  matched_transaction_id?: string|null;
   subtransactions: SubTransaction[];
 }
 
 export class Transaction {
-  constructor(readonly transaction: TransactionData) {}
+  transfer_account_id: Option<string>;
+  transfer_transaction_id: Option<string>;
+  matched_transaction_id: Option<string>;
+
+  constructor(readonly transaction: TransactionData) {
+    this.transfer_account_id = fromNullable(transaction.transfer_account_id);
+    this.transfer_transaction_id =
+        fromNullable(transaction.transfer_transaction_id);
+    this.matched_transaction_id =
+        fromNullable(transaction.matched_transaction_id);
+  }
 
   get id(): string {
     return this.transaction.id;
@@ -147,6 +160,9 @@ export class Transaction {
       approved: row[11],
       flag_color: row[12],
       import_id: row[13],
+      transfer_account_id: row[14],
+      transfer_transaction_id: row[14],
+      matched_transaction_id: row[15],
       subtransactions: [],
     });
   }
@@ -166,6 +182,9 @@ export class Transaction {
       this.cleared,
       this.approved,
       this.flag_color,
+      this.transfer_account_id.unwrapOr(''),
+      this.transfer_transaction_id.unwrapOr(''),
+      this.matched_transaction_id.unwrapOr(''),
       this.import_id,
     ];
   }
