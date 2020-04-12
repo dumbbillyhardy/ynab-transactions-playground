@@ -2,9 +2,9 @@ import {API} from 'ynab';
 
 import {Transaction} from '../../beans';
 import {fromNullable} from '../../util/option';
-import {TopLevelDAO} from '../interfaces';
+import {RWService} from '../interfaces';
 
-export class YnabTransactionsDAO implements TopLevelDAO<Transaction> {
+export class YnabTransactionsDAO implements RWService<Transaction> {
   constructor(readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<Transaction[]> {

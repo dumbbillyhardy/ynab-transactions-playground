@@ -1,9 +1,9 @@
 import {API} from 'ynab';
 
 import {Account} from '../../beans/account';
-import {TopLevelDAO} from '../interfaces';
+import {RWService} from '../interfaces';
 
-export class YnabAccountsDAO implements TopLevelDAO<Account> {
+export class YnabAccountsDAO implements RWService<Account> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<Account[]> {

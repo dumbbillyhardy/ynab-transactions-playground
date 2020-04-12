@@ -2,9 +2,9 @@ import {sheets_v4} from 'googleapis';
 
 import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans';
 import {SheetRange} from '../../sheet_config';
-import {TopLevelDAO} from '../interfaces';
+import {RWService} from '../interfaces';
 
-export class SheetsCategoriesDAO implements TopLevelDAO<CategoryGroup> {
+export class SheetsCategoriesDAO implements RWService<CategoryGroup> {
   constructor(
       readonly categoryGroupService: SheetsCategoryGroupsDAO,
       readonly categoryService: SheetsOnlyCategoriesDAO) {}
@@ -53,7 +53,7 @@ export class SheetsCategoriesDAO implements TopLevelDAO<CategoryGroup> {
 }
 
 export class SheetsCategoryGroupsDAO implements
-    TopLevelDAO<CategoryGroupSaveObject> {
+    RWService<CategoryGroupSaveObject> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => CategoryGroupSaveObject,
@@ -90,7 +90,7 @@ export class SheetsCategoryGroupsDAO implements
   }
 }
 
-export class SheetsOnlyCategoriesDAO implements TopLevelDAO<Category> {
+export class SheetsOnlyCategoriesDAO implements RWService<Category> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => Category,

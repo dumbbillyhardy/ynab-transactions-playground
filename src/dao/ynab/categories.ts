@@ -1,9 +1,9 @@
 import {API} from 'ynab';
 
 import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans/category';
-import {TopLevelDAO} from '../interfaces';
+import {RWService} from '../interfaces';
 
-export class YnabCategoriesDAO implements TopLevelDAO<CategoryGroup> {
+export class YnabCategoriesDAO implements RWService<CategoryGroup> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<CategoryGroup[]> {
@@ -51,7 +51,7 @@ export class YnabCategoriesDAO implements TopLevelDAO<CategoryGroup> {
 }
 
 export class YnabCategoryGroupDAO implements
-    TopLevelDAO<CategoryGroupSaveObject> {
+    RWService<CategoryGroupSaveObject> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<CategoryGroupSaveObject[]> {
@@ -90,7 +90,7 @@ export class YnabCategoryGroupDAO implements
   }
 }
 
-export class YnabCategoryDAO implements TopLevelDAO<Category> {
+export class YnabCategoryDAO implements RWService<Category> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<Category[]> {
