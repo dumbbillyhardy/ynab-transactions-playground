@@ -1,11 +1,13 @@
-import {AccountData} from './account';
+import {BudgetSummary as YnabBudget} from 'ynab';
+
+import {Account} from './account';
 
 export interface BudgetData {
   id: string;
   name: string;
   first_month?: string|null;
   last_month?: string|null;
-  accounts?: Array<AccountData>|null;
+  accounts?: Array<Account>|null;
 }
 
 export class Budget {
@@ -37,6 +39,19 @@ export class Budget {
       name: row[1],
       first_month: row[2],
       last_month: row[3],
+    });
+  }
+
+  static parseYnab(b: YnabBudget) {
+    return new Budget({
+      id: b.id,
+      name: b.name,
+      first_month: b.first_month,
+      last_month: b.last_month,
+      accounts: b.accounts?.map(a => new Account({
+                                  budget_id: b.id,
+                                  ...a,
+                                })),
     });
   }
 }

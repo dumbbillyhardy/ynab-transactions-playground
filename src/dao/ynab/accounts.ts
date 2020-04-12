@@ -8,14 +8,21 @@ export class YnabAccountsDAO implements TopLevelDAO<Account> {
 
   getAll(): Promise<Account[]> {
     return this.ynabAPI.accounts.getAccounts(this.b_id).then(resp => {
-      return resp.data.accounts.map(a => new Account(a))
+      return resp.data.accounts
+          .map(a => new Account({
+                 budget_id: this.b_id,
+                 ...a,
+               }))
           .filter(a => !a.account.closed);
     });
   }
 
   getById(id: string): Promise<Account> {
     return this.ynabAPI.accounts.getAccountById(this.b_id, id)
-        .then(resp => new Account(resp.data.account));
+        .then(resp => new Account({
+                budget_id: this.b_id,
+                ...resp.data.account,
+              }));
   }
 
   save(): Promise<Account> {

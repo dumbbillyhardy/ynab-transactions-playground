@@ -18,6 +18,7 @@ export class SheetsCategoriesDAO implements TopLevelDAO<CategoryGroup> {
         .then(([groups, categories]) => {
           return groups.map(g => {
             return new CategoryGroup({
+              budget_id: g.budget_id,
               id: g.id,
               name: g.name,
               categories: categories.filter(c => c.category.group_id === g.id)

@@ -8,13 +8,29 @@ export class YnabCategoriesDAO implements TopLevelDAO<CategoryGroup> {
 
   getAll(): Promise<CategoryGroup[]> {
     return this.ynabAPI.categories.getCategories(this.b_id).then(resp => {
-      return resp.data.category_groups.map(b => new CategoryGroup(b));
+      return resp.data.category_groups
+          .map(g => ({
+                 budget_id: this.b_id,
+                 id: g.id,
+                 name: g.name,
+                 categories: g.categories.map(c => ({
+                                                budget_id: this.b_id,
+                                                ...c,
+                                              })),
+               }))
+          .map(g => new CategoryGroup(g));
     });
   }
 
   getById(id: string): Promise<CategoryGroup> {
     return this.ynabAPI.categories.getCategoryById(this.b_id, id)
-        .then(resp => new CategoryGroup({categories: [resp.data.category]}));
+        .then(resp => new CategoryGroup({
+                budget_id: this.b_id,
+                categories: [{
+                  budget_id: this.b_id,
+                  ...resp.data.category,
+                }]
+              }));
   }
 
   save(): Promise<CategoryGroup> {
@@ -41,7 +57,15 @@ export class YnabCategoryGroupDAO implements
   getAll(): Promise<CategoryGroupSaveObject[]> {
     return this.ynabAPI.categories.getCategories(this.b_id).then(resp => {
       return resp.data.category_groups.map(
-          g => new CategoryGroup(g).toSaveObject());
+          g => new CategoryGroup({
+                 budget_id: this.b_id,
+                 id: g.id,
+                 name: g.name,
+                 categories: g.categories.map(c => ({
+                                                budget_id: this.b_id,
+                                                ...c,
+                                              })),
+               }).toSaveObject());
     });
   }
 
@@ -74,8 +98,9 @@ export class YnabCategoryDAO implements TopLevelDAO<Category> {
       return resp.data.category_groups.flatMap(g => {
         return g.categories.map(c => {
           return new Category({
-            ...c,
+            budget_id: this.b_id,
             group_id: g.id,
+            ...c,
           });
         });
       });

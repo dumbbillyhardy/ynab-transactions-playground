@@ -1,13 +1,11 @@
-import {BudgetSummary} from 'ynab';
-
-import {Budget} from '../../beans';
+import {Budget, BudgetData} from '../../beans';
 import {fromNullable} from '../../util/option';
 import {TopLevelDAO} from '../interfaces';
 
 export class TransientBudgetDAO implements TopLevelDAO<Budget> {
   readonly budgets: Map<string, Budget>;
 
-  constructor(budgets: Map<string, BudgetSummary>) {
+  constructor(budgets: Map<string, BudgetData>) {
     this.budgets = new Map(Array.from(budgets.entries()).map((val) => {
       return [val[0], new Budget(val[1])];
     }));

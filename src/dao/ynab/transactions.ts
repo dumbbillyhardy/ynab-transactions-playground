@@ -9,19 +9,28 @@ export class YnabTransactionsDAO implements TopLevelDAO<Transaction> {
 
   getAll(): Promise<Transaction[]> {
     return this.ynabAPI.transactions.getTransactions(this.b_id).then(
-        resp => resp.data.transactions.map((trans) => new Transaction(trans)));
+        resp => resp.data.transactions.map((trans) => new Transaction({
+                                             budget_id: this.b_id,
+                                             ...trans,
+                                           })));
   }
 
   getById(t_id: string): Promise<Transaction> {
     return this.ynabAPI.transactions.getTransactionById(this.b_id, t_id)
-        .then(resp => new Transaction(resp.data.transaction));
+        .then(resp => new Transaction({
+                budget_id: this.b_id,
+                ...resp.data.transaction,
+              }));
   }
 
   save(transaction: Transaction): Promise<Transaction> {
     return this.ynabAPI.transactions
         .createTransaction(this.b_id, {transaction: transaction.toSaveObject()})
         .then(resp => fromNullable(resp.data.transaction).unwrap())
-        .then(t => new Transaction(t));
+        .then(t => new Transaction({
+                budget_id: this.b_id,
+                ...t,
+              }));
   }
 
   update(transaction: Transaction): Promise<Transaction> {
@@ -30,7 +39,10 @@ export class YnabTransactionsDAO implements TopLevelDAO<Transaction> {
             this.b_id, transaction.id,
             {transaction: transaction.toSaveObject()})
         .then(resp => fromNullable(resp.data.transaction).unwrap())
-        .then(t => new Transaction(t));
+        .then(t => new Transaction({
+                budget_id: this.b_id,
+                ...t,
+              }));
   }
 
   saveAll(transactions: Transaction[]): Promise<Transaction[]> {
@@ -38,6 +50,9 @@ export class YnabTransactionsDAO implements TopLevelDAO<Transaction> {
         .createTransactions(
             this.b_id, {transactions: transactions.map(t => t.toSaveObject())})
         .then(resp => fromNullable(resp.data.transactions).unwrap())
-        .then(ts => ts.map(t => new Transaction(t)));
+        .then(ts => ts.map(t => new Transaction({
+                             budget_id: this.b_id,
+                             ...t,
+                           })));
   }
 }

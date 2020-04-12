@@ -1,49 +1,58 @@
 import {Category as YnabCategory} from 'ynab';
 import {fromNullable, Option} from '../util/option';
 
-export interface CategoryGroupData {
+export interface CategoryGroupSaveObjectData {
+  budget_id: string;
   id?: string;
   name?: string;
-  categories: Array<CategoryData>;
+  categoryIds: string[];
 }
 
 export class CategoryGroupSaveObject {
+  readonly budget_id: string;
   readonly id?: string;
   readonly name?: string;
   readonly categoryIds: string[];
 
-  constructor(obj: {id?: string, name?: string, categoryIds: string[]}) {
+  constructor(obj: CategoryGroupSaveObjectData) {
+    this.budget_id = obj.budget_id;
     this.id = obj.id;
     this.name = obj.name;
     this.categoryIds = obj.categoryIds.slice();
   }
 
   toSheetsArray(): any[] {
-    return [this.id, this.name];
+    return [this.budget_id, this.id, this.name];
   }
 
   static fromSheetsArray(row: any[]) {
     return new CategoryGroupSaveObject({
-      id: row[0],
-      name: row[1],
+      budget_id: row[0],
+      id: row[1],
+      name: row[2],
       categoryIds: [],
     });
   }
 }
 
+export interface CategoryGroupData {
+  budget_id: string;
+  id?: string;
+  name?: string;
+  categories: Array<CategoryData>;
+}
+
 export class CategoryGroup {
+  budget_id: string;
+  id?: string;
+  name?: string;
   categories: Category[];
 
   constructor(readonly group: CategoryGroupData) {
+    this.budget_id = group.budget_id;
+    this.id = group.id;
+    this.name = group.name;
     this.categories = group.categories.map(c => new Category(c));
-  }
-
-  get name() {
-    return this.group.name;
-  }
-
-  get id() {
-    return this.group.id;
   }
 
   toAspire(): any[][] {
@@ -57,24 +66,27 @@ export class CategoryGroup {
 
   static fromSheetsArray(row: any[]): CategoryGroup {
     return new CategoryGroup({
-      id: row[0],
-      name: row[1],
+      budget_id: row[0],
+      id: row[1],
+      name: row[2],
       categories: [],
     });
   }
 
   toSaveObject() {
     return new CategoryGroupSaveObject({
+      budget_id: this.budget_id,
       id: this.id,
       name: this.name,
-      categoryIds: this.categories.map(c => c.id),
+      categoryIds: this.categories.map(c => c.id ?? ''),
     });
   }
 }
 
 export interface CategoryData extends GoalData {
-  id: string;
-  name: string;
+  budget_id: string;
+  id?: string;
+  name?: string;
   group_id?: string;
   budgeted: number;
   activity: number;
@@ -86,6 +98,10 @@ export class Category {
 
   constructor(readonly category: CategoryData) {
     this.goal = new Goal(category);
+  }
+
+  get budget_id() {
+    return this.category.budget_id;
   }
 
   get name() {
@@ -125,18 +141,19 @@ export class Category {
 
   toSheetsArray(): any[] {
     return [
-      this.group_id, this.id, this.name, this.budgeted, this.activity,
-      this.balance
+      this.budget_id, this.group_id, this.id, this.name, this.budgeted,
+      this.activity, this.balance
     ];
   }
 
   static fromSheetsArray(row: any[]): Category {
     return new Category({
-      id: row[0] as string,
-      name: row[1] as string,
-      budgeted: (row[2] as number) * 1000,
-      activity: (row[3] as number) * 1000,
-      balance: (row[4] as number) * 1000,
+      budget_id: row[0],
+      id: row[1] as string,
+      name: row[2] as string,
+      budgeted: (row[3] as number) * 1000,
+      activity: (row[4] as number) * 1000,
+      balance: (row[5] as number) * 1000,
     });
   }
 }
