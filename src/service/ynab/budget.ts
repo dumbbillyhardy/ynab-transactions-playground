@@ -6,15 +6,10 @@ import {RWService} from '../interfaces';
 export class YnabBudgetService implements RWService<Budget> {
   constructor(private readonly ynabAPI: API) {}
 
-  getAll(): Promise<Budget[]> {
-    return this.ynabAPI.budgets.getBudgets().then(budgetsResponse => {
-      return budgetsResponse.data.budgets.map(Budget.parseYnab);
-    });
-  }
-
-  getById(id: string): Promise<Budget> {
-    return this.ynabAPI.budgets.getBudgetById(id).then(
-        budgetResponse => Budget.parseYnab(budgetResponse.data.budget));
+  getByIds(...ids: string[]): Promise<Budget[]> {
+    return Promise.all(ids.map(
+        id => this.ynabAPI.budgets.getBudgetById(id).then(
+            r => Budget.parseYnab(r.data.budget))));
   }
 
   save(): Promise<Budget> {
@@ -25,11 +20,24 @@ export class YnabBudgetService implements RWService<Budget> {
     return Promise.reject('Update not supported');
   }
 
-  delete(): Promise<Budget> {
+  delete(): Promise<void> {
     return Promise.reject('Delete not supported');
+  }
+
+  getAll(): Promise<Budget[]> {
+    return this.ynabAPI.budgets.getBudgets().then(
+        r => r.data.budgets.map(Budget.parseYnab));
   }
 
   saveAll(): Promise<Budget[]> {
     return Promise.reject('SaveAll not supported');
+  }
+
+  updateAll(): Promise<Budget[]> {
+    return Promise.reject('UpdateAll not supported');
+  }
+
+  deleteAll(): Promise<void> {
+    return Promise.reject('DeleteAll not supported');
   }
 }

@@ -1,4 +1,4 @@
-import {SaveTransaction, SubTransaction, TransactionDetail} from 'ynab';
+import {SaveTransaction, SubTransaction, TransactionDetail, UpdateTransaction} from 'ynab';
 
 import {fromNullable, Option} from '../util/option';
 
@@ -134,6 +134,24 @@ export class Transaction {
 
   toSaveObject(): SaveTransaction {
     return {
+      account_id: this.account_id,
+      date: this.date,
+      amount: this.amount,
+      payee_id: this.transaction.payee_id,
+      payee_name: this.payee_name,
+      category_id: this.transaction.category_id,
+      memo: this.memo,
+      cleared: this.transaction.cleared,
+      approved: this.approved,
+      flag_color: this.transaction.flag_color,
+      import_id: this.transaction.import_id,
+      subtransactions: this.transaction.subtransactions,
+    };
+  }
+
+  toUpdateObject(): UpdateTransaction {
+    return {
+      id: this.id,
       account_id: this.account_id,
       date: this.date,
       amount: this.amount,

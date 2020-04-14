@@ -9,12 +9,7 @@ export class SheetsTopLevelService<T> implements RWService<T> {
       readonly factory: (row: any[]) => T,
       readonly serailizer: (o: T) => any[]) {}
 
-  getAll(): Promise<T[]> {
-    return this.sheetsService.spreadsheets.values.get(this.sheetRange)
-        .then((val) => val.data.values!.map(row => this.factory(row)));
-  }
-
-  getById(): Promise<T> {
+  getByIds(): Promise<T[]> {
     throw new Error('Not implemented, try using cached service.');
   }
 
@@ -26,8 +21,13 @@ export class SheetsTopLevelService<T> implements RWService<T> {
     throw new Error('Not implemented');
   }
 
-  delete(): Promise<T> {
+  delete(): Promise<void> {
     throw new Error('Not implemented');
+  }
+
+  getAll(): Promise<T[]> {
+    return this.sheetsService.spreadsheets.values.get(this.sheetRange)
+        .then((val) => val.data.values!.map(row => this.factory(row)));
   }
 
   saveAll(rows: T[]): Promise<T[]> {
@@ -40,5 +40,17 @@ export class SheetsTopLevelService<T> implements RWService<T> {
           }
         })
         .then(() => rows);
+  }
+
+  updateAll(): Promise<T[]> {
+    throw new Error('Not implemented');
+  }
+
+  deleteAll(): Promise<void> {
+    return this.sheetsService.spreadsheets.values
+        .clear({
+          ...this.sheetRange,
+        })
+        .then();
   }
 }

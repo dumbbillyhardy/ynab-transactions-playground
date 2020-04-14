@@ -1,6 +1,6 @@
 export interface ReadOnlyService<T> {
+  getByIds(...ids: string[]): Promise<T[]>;
   getAll(): Promise<T[]>;
-  getById(id: string): Promise<T>;
 }
 
 export interface AppendOnlyService<T> {
@@ -10,6 +10,9 @@ export interface AppendOnlyService<T> {
 
 export interface UpdateOnlyService<T> {
   update(obj: T): Promise<T>;
+  delete(id: string): Promise<void>;
+  updateAll(objs: T[]): Promise<T[]>;
+  deleteAll(): Promise<void>;
 }
 
 export interface RWService<T> extends ReadOnlyService<T>, AppendOnlyService<T>,
