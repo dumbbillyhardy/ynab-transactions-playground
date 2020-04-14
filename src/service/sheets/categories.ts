@@ -4,10 +4,10 @@ import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans';
 import {SheetRange} from '../../sheet_config';
 import {RWService} from '../interfaces';
 
-export class SheetsCategoriesDAO implements RWService<CategoryGroup> {
+export class SheetsCategoriesService implements RWService<CategoryGroup> {
   constructor(
-      readonly categoryGroupService: SheetsCategoryGroupsDAO,
-      readonly categoryService: SheetsOnlyCategoriesDAO) {}
+      readonly categoryGroupService: SheetsCategoryGroupsService,
+      readonly categoryService: SheetsOnlyCategoriesService) {}
 
   getAll(): Promise<CategoryGroup[]> {
     return Promise
@@ -52,7 +52,7 @@ export class SheetsCategoriesDAO implements RWService<CategoryGroup> {
   }
 }
 
-export class SheetsCategoryGroupsDAO implements
+export class SheetsCategoryGroupsService implements
     RWService<CategoryGroupSaveObject> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
@@ -90,7 +90,7 @@ export class SheetsCategoryGroupsDAO implements
   }
 }
 
-export class SheetsOnlyCategoriesDAO implements RWService<Category> {
+export class SheetsOnlyCategoriesService implements RWService<Category> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => Category,

@@ -4,7 +4,7 @@ import {Transaction} from '../../beans';
 import {fromNullable} from '../../util/option';
 import {RWService} from '../interfaces';
 
-export class YnabTransactionsDAO implements RWService<Transaction> {
+export class YnabTransactionsService implements RWService<Transaction> {
   constructor(readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<Transaction[]> {

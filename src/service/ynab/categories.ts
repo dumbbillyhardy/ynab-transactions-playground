@@ -3,7 +3,7 @@ import {API} from 'ynab';
 import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans/category';
 import {RWService} from '../interfaces';
 
-export class YnabCategoriesDAO implements RWService<CategoryGroup> {
+export class YnabCategoriesService implements RWService<CategoryGroup> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<CategoryGroup[]> {

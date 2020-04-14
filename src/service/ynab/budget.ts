@@ -3,7 +3,7 @@ import {API} from 'ynab';
 import {Budget} from '../../beans';
 import {RWService} from '../interfaces';
 
-export class YnabBudgetDAO implements RWService<Budget> {
+export class YnabBudgetService implements RWService<Budget> {
   constructor(private readonly ynabAPI: API) {}
 
   getAll(): Promise<Budget[]> {

@@ -3,7 +3,7 @@ import {API} from 'ynab';
 import {Account} from '../../beans/account';
 import {RWService} from '../interfaces';
 
-export class YnabAccountsDAO implements RWService<Account> {
+export class YnabAccountsService implements RWService<Account> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
   getAll(): Promise<Account[]> {

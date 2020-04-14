@@ -3,7 +3,7 @@ import {sheets_v4} from 'googleapis';
 import {SheetRange} from '../../sheet_config';
 import {RWService} from '../interfaces';
 
-export class SheetsTopLevelDAO<T> implements RWService<T> {
+export class SheetsTopLevelService<T> implements RWService<T> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
       readonly factory: (row: any[]) => T,
