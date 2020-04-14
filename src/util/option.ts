@@ -1,12 +1,22 @@
 export interface Option<T> {
+  isSome(): this is Some<T>;
+  isNone(): this is None<T>;
   map<R>(fn: (value: T) => R): Option<R>;
   flatMap<R>(fn: (value: T) => Option<R>): Option<R>;
   filter(fn: (value: T) => boolean): Option<T>;
   unwrap(error?: string): T;
-  unwrapOr(val: T): T;
+  unwrapOr<U>(defaultV: T): T|U;
 }
 
 export class None<T> implements Option<T> {
+  isSome(): this is Some<T> {
+    return false;
+  }
+
+  isNone(): this is None<T> {
+    return true;
+  }
+
   map<R>(): Option<R> {
     return new None();
   }
@@ -23,13 +33,21 @@ export class None<T> implements Option<T> {
     throw new Error(error ?? 'Tried to unwrap None');
   }
 
-  unwrapOr(val: T): T {
-    return val;
+  unwrapOr<U>(defaultV: U): T|U {
+    return defaultV;
   }
 }
 
 export class Some<T> implements Option<T> {
   constructor(readonly value: T) {}
+
+  isSome(): this is Some<T> {
+    return true;
+  }
+
+  isNone(): this is None<T> {
+    return false;
+  }
 
   map<R>(fn: (value: T) => R): Option<R> {
     return new Some(fn(this.value));
@@ -50,7 +68,7 @@ export class Some<T> implements Option<T> {
     return this.value;
   }
 
-  unwrapOr(): T {
+  unwrapOr<U>(): T|U {
     return this.value;
   }
 }
