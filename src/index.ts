@@ -4,7 +4,7 @@ import {API} from 'ynab';
 
 import {Account, Budget, Category, CategoryGroup, CategoryGroupSaveObject, Transaction} from './beans';
 import {Config} from './config';
-import {TopLevelMigrator} from './service/migrator';
+import {FullMigrator} from './service/migrator';
 import {SheetsAccountService, SheetsBudgetService, SheetsTransactionsService} from './service/sheets';
 import {SheetsCategoriesService, SheetsCategoryGroupsService, SheetsOnlyCategoriesService} from './service/sheets/categories';
 import {YnabAccountsService} from './service/ynab/accounts';
@@ -62,7 +62,7 @@ fs.readFile('config.json', {encoding: 'utf8'})
             sheets, customAccountsSheetConfig.toSheetRange(),
             Account.fromSheetsArray, (a: Account) => a.toSheetsArray());
         const ynabAccountsService = new YnabAccountsService(ynabAPI, budget_id);
-        const accountsMigrator = new TopLevelMigrator<Account>(
+        const accountsMigrator = new FullMigrator<Account>(
             ynabAccountsService, sheetsAccountsService);
         accountsMigrator;
 
@@ -72,7 +72,7 @@ fs.readFile('config.json', {encoding: 'utf8'})
             Transaction.fromSheetsArray, (t: Transaction) => t.toSheetsArray());
         const ynabTransactionsService =
             new YnabTransactionsService(ynabAPI, budget_id);
-        const transactionsMigrator = new TopLevelMigrator<Transaction>(
+        const transactionsMigrator = new FullMigrator<Transaction>(
             ynabTransactionsService, sheetsTransactionsService);
         transactionsMigrator;
 
@@ -88,7 +88,7 @@ fs.readFile('config.json', {encoding: 'utf8'})
             sheetsCategoryGroupsService, sheetsOnlyCategoryService);
         const ynabCategoriesService =
             new YnabCategoriesService(ynabAPI, budget_id);
-        const categoriesMigrator = new TopLevelMigrator<CategoryGroup>(
+        const categoriesMigrator = new FullMigrator<CategoryGroup>(
             ynabCategoriesService, sheetsCategoriesService);
         categoriesMigrator;
 
