@@ -4,3 +4,4 @@ node_modules
 dist
 token.json
 config.json
+pouchdata

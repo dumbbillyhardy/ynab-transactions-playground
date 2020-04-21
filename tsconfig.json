@@ -1,6 +1,7 @@
 {
   "include": ["src", "types", "test"],
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "target": "ES2015",
     "module": "esnext",
     "lib": ["esnext"],

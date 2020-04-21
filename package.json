@@ -36,7 +36,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@types/pouchdb": "^6.4.0",
     "googleapis": "39",
+    "pouchdb": "^7.2.1",
     "ynab": "^1.18.0"
   }
 }
