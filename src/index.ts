@@ -5,10 +5,10 @@ import {API} from 'ynab';
 
 import {Account, Budget, Category, CategoryGroup, Transaction} from './beans';
 import {Config} from './config';
+import {CategoriesAndCategoryGroupsService} from './service/categories_service';
 import {AccountCouchDbService, BudgetCouchDbService, TransactionsCouchDbService} from './service/couchdb';
 import {FullMigrator} from './service/migrator';
-import {SheetsAccountService, SheetsBudgetService, SheetsTransactionsService} from './service/sheets';
-import {SheetsCategoriesService, SheetsCategoryGroupsService, SheetsOnlyCategoriesService} from './service/sheets/categories';
+import {SheetsAccountService, SheetsBudgetService, SheetsCategoriesService, SheetsCategoryGroupsService, SheetsTransactionsService} from './service/sheets';
 import {YnabAccountsService} from './service/ynab/accounts';
 import {YnabCategoriesService} from './service/ynab/categories';
 import {YnabTransactionsService} from './service/ynab/transactions';
@@ -104,11 +104,11 @@ fs.readFile('config.json', {encoding: 'utf8'})
             sheets, customCategoryGroupsSheetConfig.toSheetRange(),
             CategoryGroup.fromSheetsArray,
             (g: CategoryGroup) => g.toSheetsArray());
-        const sheetsOnlyCategoryService = new SheetsOnlyCategoriesService(
+        const sheetsOnlyCategoriesService = new SheetsCategoriesService(
             sheets, customCategoriesSheetConfig.toSheetRange(),
             Category.fromSheetsArray, (c: Category) => c.toSheetsArray());
-        const sheetsCategoriesService = new SheetsCategoriesService(
-            sheetsCategoryGroupsService, sheetsOnlyCategoryService);
+        const sheetsCategoriesService = new CategoriesAndCategoryGroupsService(
+            sheetsCategoryGroupsService, sheetsOnlyCategoriesService);
         const ynabCategoriesService =
             new YnabCategoriesService(ynabAPI, budget_id);
         const categoriesMigrator = new FullMigrator<CategoryGroup>(
