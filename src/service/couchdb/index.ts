@@ -1,4 +1,4 @@
-import {Account, Budget, SaveAccountData, SaveBudgetData, SaveTransactionData, Transaction} from '../../beans';
+import {Account, Budget, CategoryGroup, CategoryGroupData, SaveAccountData, SaveBudgetData, SaveTransactionData, Transaction} from '../../beans';
 
 import {CouchDbService} from './couchdb';
 
@@ -10,3 +10,5 @@ export class BudgetCouchDbService extends
     CouchDbService<Budget, SaveBudgetData> {}
 export class TransactionsCouchDbService extends
     CouchDbService<Transaction, SaveTransactionData> {}
+export class CategoryGroupsCouchDbService extends
+    CouchDbService<CategoryGroup, CategoryGroupData> {}
