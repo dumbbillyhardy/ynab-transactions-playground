@@ -132,7 +132,7 @@ export class Transaction {
     ] as any[];
   }
 
-  toSaveObject(): SaveTransaction {
+  toYnabSaveObject(): SaveTransaction {
     return {
       account_id: this.account_id,
       date: this.date,

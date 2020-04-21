@@ -19,7 +19,8 @@ export class YnabTransactionsService implements RWService<Transaction> {
 
   save(transaction: Transaction): Promise<Transaction> {
     return this.ynabAPI.transactions
-        .createTransaction(this.b_id, {transaction: transaction.toSaveObject()})
+        .createTransaction(
+            this.b_id, {transaction: transaction.toYnabSaveObject()})
         .then(resp => fromNullable(resp.data.transaction).unwrap())
         .then(t => new Transaction({
                 budget_id: this.b_id,
@@ -31,7 +32,7 @@ export class YnabTransactionsService implements RWService<Transaction> {
     return this.ynabAPI.transactions
         .updateTransaction(
             this.b_id, transaction.id,
-            {transaction: transaction.toSaveObject()})
+            {transaction: transaction.toYnabSaveObject()})
         .then(resp => fromNullable(resp.data.transaction).unwrap())
         .then(t => new Transaction({
                 budget_id: this.b_id,
@@ -55,7 +56,8 @@ export class YnabTransactionsService implements RWService<Transaction> {
   saveAll(transactions: Transaction[]): Promise<Transaction[]> {
     return this.ynabAPI.transactions
         .createTransactions(
-            this.b_id, {transactions: transactions.map(t => t.toSaveObject())})
+            this.b_id,
+            {transactions: transactions.map(t => t.toYnabSaveObject())})
         .then(resp => fromNullable(resp.data.transactions).unwrap())
         .then(ts => ts.map(t => new Transaction({
                              budget_id: this.b_id,

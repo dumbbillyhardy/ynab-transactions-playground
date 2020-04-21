@@ -73,7 +73,7 @@ export class CategoryGroup {
     });
   }
 
-  toSaveObject() {
+  toYnabSaveObject() {
     return new CategoryGroupSaveObject({
       budget_id: this.budget_id,
       id: this.id,

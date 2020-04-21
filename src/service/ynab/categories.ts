@@ -90,7 +90,7 @@ export class YnabCategoryGroupDAO implements
                                                 budget_id: this.b_id,
                                                 ...c,
                                               })),
-               }).toSaveObject());
+               }).toYnabSaveObject());
     });
   }
 
