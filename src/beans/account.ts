@@ -14,6 +14,18 @@ export interface AccountData {
   transfer_payee_id: string;
 }
 
+export interface SaveAccountData {
+  budget_id: string;
+  id: string;
+  name: string;
+  type?: YnabAccount.TypeEnum;
+  balance: number;
+  cleared_balance?: number;
+  uncleared_balance?: number;
+  closed: boolean;
+  transfer_payee_id: string;
+}
+
 export class Account {
   constructor(readonly account: AccountData) {}
 
@@ -37,13 +49,13 @@ export class Account {
     return this.account.balance / 1000;
   }
 
-  get cleared_balance() {
+  get cleared_balance(): number {
     return fromNullable(this.account.cleared_balance)
         .map(b => b / 1000)
         .unwrapOr(0);
   }
 
-  get uncleared_balance() {
+  get uncleared_balance(): number {
     return fromNullable(this.account.uncleared_balance)
         .map(b => b / 1000)
         .unwrapOr(0);
@@ -87,5 +99,19 @@ export class Account {
 
   toAspireArray(): any[] {
     return [this.name];
+  }
+
+  toSaveObject(): SaveAccountData {
+    return {
+      budget_id: this.budget_id,
+      id: this.id,
+      name: this.name,
+      type: this.type,
+      balance: this.balance,
+      cleared_balance: this.cleared_balance,
+      uncleared_balance: this.uncleared_balance,
+      closed: this.closed,
+      transfer_payee_id: this.transfer_payee_id,
+    };
   }
 }

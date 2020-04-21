@@ -1,6 +1,6 @@
 import {API} from 'ynab';
 
-import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans/category';
+import {Category, CategoryGroup, CategoryGroupSaveObjectData} from '../../beans/category';
 import {RWService} from '../interfaces';
 
 export class YnabCategoriesService implements RWService<CategoryGroup> {
@@ -60,18 +60,18 @@ export class YnabCategoriesService implements RWService<CategoryGroup> {
 }
 
 export class YnabCategoryGroupDAO implements
-    RWService<CategoryGroupSaveObject> {
+    RWService<CategoryGroupSaveObjectData> {
   constructor(private readonly ynabAPI: API, readonly b_id: string) {}
 
-  getByIds(): Promise<CategoryGroupSaveObject[]> {
+  getByIds(): Promise<CategoryGroupSaveObjectData[]> {
     return Promise.reject('GetById not supported');
   }
 
-  save(): Promise<CategoryGroupSaveObject> {
+  save(): Promise<CategoryGroupSaveObjectData> {
     return Promise.reject('Save not supported');
   }
 
-  update(): Promise<CategoryGroupSaveObject> {
+  update(): Promise<CategoryGroupSaveObjectData> {
     return Promise.reject('Update not supported');
   }
 
@@ -79,7 +79,7 @@ export class YnabCategoryGroupDAO implements
     return Promise.reject('Delete not supported');
   }
 
-  getAll(): Promise<CategoryGroupSaveObject[]> {
+  getAll(): Promise<CategoryGroupSaveObjectData[]> {
     return this.ynabAPI.categories.getCategories(this.b_id).then(resp => {
       return resp.data.category_groups.map(
           g => new CategoryGroup({
@@ -94,11 +94,11 @@ export class YnabCategoryGroupDAO implements
     });
   }
 
-  saveAll(): Promise<CategoryGroupSaveObject[]> {
+  saveAll(): Promise<CategoryGroupSaveObjectData[]> {
     return Promise.reject('SaveAll not supported');
   }
 
-  updateAll(): Promise<CategoryGroupSaveObject[]> {
+  updateAll(): Promise<CategoryGroupSaveObjectData[]> {
     return Promise.reject('UpdateAll not supported');
   }
 

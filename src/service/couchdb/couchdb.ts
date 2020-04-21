@@ -4,25 +4,34 @@ export interface ById<T> {
   id: T;
 }
 
-export class CouchDbService<T extends ById<string>> implements RWService<T> {
-  constructor(readonly db: PouchDB.Database) {}
+export class CouchDbService<T extends ById<string>, U> implements RWService<T> {
+  constructor(
+      readonly db: PouchDB.Database,
+      readonly factory: (row: U) => T,
+      readonly serailizer: (o: T) => U,
+  ) {}
 
   private _getByIds(...ids: string[]):
-      Promise<(PouchDB.Core.Document<T>& PouchDB.Core.RevisionIdMeta)[]> {
+      Promise<(PouchDB.Core.Document<U>& PouchDB.Core.RevisionIdMeta)[]> {
     return Promise.all(ids.map((id) => {
-      return this.db.get<T>(id);
+      return this.db.get<U>(id);
     }));
   }
 
   getByIds(...ids: string[]): Promise<T[]> {
-    return this._getByIds(...ids);
+    return this._getByIds(...ids).then((objs) => objs.map(this.factory));
   }
 
   save(obj: T): Promise<T> {
-    return this.db
-        .post<T>({
-          ...obj,
-          '_id': obj.id,
+    const id = obj.id;
+    return Promise.resolve(obj)
+        .then(this.serailizer)
+        .then((obj) => ({
+                ...obj,
+                '_id': id,
+              }))
+        .then((obj) => {
+          return this.db.post<U>(obj);
         })
         .then((doc) => {
           return {
@@ -45,17 +54,22 @@ export class CouchDbService<T extends ById<string>> implements RWService<T> {
   }
 
   getAll(): Promise<T[]> {
-    return this.db.allDocs<T>({include_docs: true}).then((docs) => {
-      return docs.rows.map(row => row.doc).filter(r => r != null).map(r => r!);
+    return this.db.allDocs<U>({include_docs: true}).then((docs) => {
+      return docs.rows.map(row => row.doc)
+          .filter(r => r != null)
+          .map(r => r!)
+          .map(this.factory);
     });
   }
 
   saveAll(objs: T[]): Promise<T[]> {
     return this.db
-        .bulkDocs<T>(objs.map(o => ({
-                                ...o,
-                                '_id': o.id,
-                              })))
+        .bulkDocs<U>(objs.map(o => {
+          return {
+            ...this.serailizer(o),
+            '_id': o.id,
+          };
+        }))
         .then((docs) => {
           const ret: Array<T> = [];
           for (let i = 0; i < objs.length; i++) {

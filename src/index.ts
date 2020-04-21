@@ -3,7 +3,7 @@ import {google} from 'googleapis';
 import PouchDB from 'pouchdb';
 import {API} from 'ynab';
 
-import {Account, Budget, Category, CategoryGroup, CategoryGroupSaveObject, Transaction} from './beans';
+import {Account, Budget, Category, CategoryGroup, Transaction} from './beans';
 import {Config} from './config';
 import {AccountCouchDbService, BudgetCouchDbService, TransactionsCouchDbService} from './service/couchdb';
 import {FullMigrator} from './service/migrator';
@@ -64,7 +64,8 @@ fs.readFile('config.json', {encoding: 'utf8'})
         const budget_id = 'f1844444-8147-42d0-8f14-92fcdcdaa710';
 
         // Budget
-        const couchDbBudgetService = new BudgetCouchDbService(budgetsCouch);
+        const couchDbBudgetService = new BudgetCouchDbService(
+            budgetsCouch, (o) => new Budget(o), (b) => b.toSaveObject());
         couchDbBudgetService;
         const sheetsBudgetService = new SheetsBudgetService(
             sheets, customBudgetSheetConfig.toSheetRange(),
@@ -72,21 +73,21 @@ fs.readFile('config.json', {encoding: 'utf8'})
         sheetsBudgetService;
 
         // Accounts
-        const couchDbAccountService = new AccountCouchDbService(accountsCouch);
+        const couchDbAccountService = new AccountCouchDbService(
+            accountsCouch, (o) => new Account(o), (a) => a.toSaveObject());
         const sheetsAccountsService = new SheetsAccountService(
             sheets, customAccountsSheetConfig.toSheetRange(),
             Account.fromSheetsArray, (a: Account) => a.toSheetsArray());
         sheetsAccountsService;
         const ynabAccountsService = new YnabAccountsService(ynabAPI, budget_id);
         const accountsMigrator = new FullMigrator<Account>(
-            ynabAccountsService,  //
-            couchDbAccountService);
-        // sheetsAccountsService);
+            ynabAccountsService, couchDbAccountService);
         accountsMigrator;
 
         // Transactions
-        const couchDbTransactionsService =
-            new TransactionsCouchDbService(transactionsCouch);
+        const couchDbTransactionsService = new TransactionsCouchDbService(
+            transactionsCouch, (o) => new Transaction(o),
+            (t) => t.toSaveObject());
         const sheetsTransactionsService = new SheetsTransactionsService(
             sheets, customTransactionsSheetConfig.toSheetRange(),
             Transaction.fromSheetsArray, (t: Transaction) => t.toSheetsArray());
@@ -95,18 +96,14 @@ fs.readFile('config.json', {encoding: 'utf8'})
             new YnabTransactionsService(ynabAPI, budget_id);
         ynabTransactionsService;
         const transactionsMigrator = new FullMigrator<Transaction>(
-            //   ynabTransactionsService,
-            sheetsTransactionsService,
-            //
-            couchDbTransactionsService);
-        // sheetsTransactionsService);
+            sheetsTransactionsService, couchDbTransactionsService);
         transactionsMigrator;
 
         // Categories
         const sheetsCategoryGroupsService = new SheetsCategoryGroupsService(
             sheets, customCategoryGroupsSheetConfig.toSheetRange(),
-            CategoryGroupSaveObject.fromSheetsArray,
-            (g: CategoryGroupSaveObject) => g.toSheetsArray());
+            CategoryGroup.fromSheetsArray,
+            (g: CategoryGroup) => g.toSheetsArray());
         const sheetsOnlyCategoryService = new SheetsOnlyCategoriesService(
             sheets, customCategoriesSheetConfig.toSheetRange(),
             Category.fromSheetsArray, (c: Category) => c.toSheetsArray());
@@ -120,8 +117,8 @@ fs.readFile('config.json', {encoding: 'utf8'})
 
         return Promise
             .all([
-              // accountsMigrator.migrate(),
-              // categoriesMigrator.migrate(),
+              accountsMigrator.migrate(),
+              categoriesMigrator.migrate(),
               transactionsMigrator.migrate(),
             ])
             .then(() => {

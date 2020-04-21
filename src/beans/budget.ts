@@ -10,6 +10,14 @@ export interface BudgetData {
   accounts?: Array<Account>|null;
 }
 
+export interface SaveBudgetData {
+  id: string;
+  name: string;
+  first_month?: string|null;
+  last_month?: string|null;
+  // accounts?: Array<SaveAccountData>|null;
+}
+
 export class Budget {
   constructor(readonly budget: BudgetData) {}
 
@@ -53,5 +61,15 @@ export class Budget {
                                   ...a,
                                 })),
     });
+  }
+
+  toSaveObject(): SaveBudgetData {
+    return {
+      id: this.id,
+      name: this.name,
+      first_month: this.first_month,
+      last_month: this.last_month,
+      // accounts: (this.budget.accounts ?? []).map(a => a.toSaveObject()),
+    };
   }
 }

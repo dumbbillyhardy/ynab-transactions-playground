@@ -1,6 +1,6 @@
 import {sheets_v4} from 'googleapis';
 
-import {Category, CategoryGroup, CategoryGroupSaveObject} from '../../beans';
+import {Category, CategoryGroup} from '../../beans';
 import {SheetRange} from '../../sheet_config';
 import {RWService} from '../interfaces';
 
@@ -12,7 +12,9 @@ export class SheetsCategoriesService implements RWService<CategoryGroup> {
   getByIds(...ids: string[]): Promise<CategoryGroup[]> {
     return this.categoryGroupService.getByIds(...ids).then(
         (groups) => Promise.all(groups.map((group) => {
-          return this.categoryService.getByIds(...group.categoryIds)
+          return this.categoryService
+              .getByIds(
+                  ...group.categories.filter(c => c.id != null).map(c => c.id!))
               .then((categories) => new CategoryGroup({
                       ...group,
                       categories,
@@ -27,7 +29,7 @@ export class SheetsCategoriesService implements RWService<CategoryGroup> {
   update(group: CategoryGroup): Promise<CategoryGroup> {
     return Promise
         .all([
-          this.categoryGroupService.update(group.toSaveObject()),
+          this.categoryGroupService.update(group),
           this.categoryService.updateAll(group.categories),
         ])
         .then(([group, categories]) => new CategoryGroup({
@@ -59,7 +61,7 @@ export class SheetsCategoriesService implements RWService<CategoryGroup> {
   saveAll(groups: CategoryGroup[]): Promise<CategoryGroup[]> {
     return Promise
         .all([
-          this.categoryGroupService.saveAll(groups.map(g => g.toSaveObject())),
+          this.categoryGroupService.saveAll(groups),
           this.categoryService.saveAll(groups.flatMap(g => {
             g.categories.forEach(c => c.group_id = g.id);
             return g.categories;
@@ -71,8 +73,7 @@ export class SheetsCategoriesService implements RWService<CategoryGroup> {
   updateAll(groups: CategoryGroup[]): Promise<CategoryGroup[]> {
     return Promise
         .all([
-          this.categoryGroupService.updateAll(
-              groups.map(g => g.toSaveObject())),
+          this.categoryGroupService.updateAll(groups),
           this.categoryService.updateAll(groups.flatMap(g => {
             g.categories.forEach(c => c.group_id = g.id);
             return g.categories;
@@ -91,23 +92,22 @@ export class SheetsCategoriesService implements RWService<CategoryGroup> {
   }
 }
 
-export class SheetsCategoryGroupsService implements
-    RWService<CategoryGroupSaveObject> {
+export class SheetsCategoryGroupsService implements RWService<CategoryGroup> {
   constructor(
       readonly sheetsService: sheets_v4.Sheets, readonly sheetRange: SheetRange,
-      readonly factory: (row: any[]) => CategoryGroupSaveObject,
-      readonly serializer: (group: CategoryGroupSaveObject) => any[]) {}
+      readonly factory: (row: any[]) => CategoryGroup,
+      readonly serializer: (group: CategoryGroup) => any[]) {}
 
-  getByIds(...ids: string[]): Promise<CategoryGroupSaveObject[]> {
+  getByIds(...ids: string[]): Promise<CategoryGroup[]> {
     ids;
     throw new Error('Not implemented, try using cached service.');
   }
 
-  save(group: CategoryGroupSaveObject): Promise<CategoryGroupSaveObject> {
+  save(group: CategoryGroup): Promise<CategoryGroup> {
     return this.saveAll([group]).then((groups) => groups[0]);
   }
 
-  update(group: CategoryGroupSaveObject): Promise<CategoryGroupSaveObject> {
+  update(group: CategoryGroup): Promise<CategoryGroup> {
     group;
     throw new Error('Not implemented');
   }
@@ -117,13 +117,12 @@ export class SheetsCategoryGroupsService implements
     throw new Error('Not implemented');
   }
 
-  getAll(): Promise<CategoryGroupSaveObject[]> {
+  getAll(): Promise<CategoryGroup[]> {
     return this.sheetsService.spreadsheets.values.get(this.sheetRange)
         .then((val) => val.data.values!.map(this.factory));
   }
 
-  saveAll(groups: CategoryGroupSaveObject[]):
-      Promise<CategoryGroupSaveObject[]> {
+  saveAll(groups: CategoryGroup[]): Promise<CategoryGroup[]> {
     return this.sheetsService.spreadsheets.values
         .append({
           ...this.sheetRange,
@@ -135,8 +134,7 @@ export class SheetsCategoryGroupsService implements
         .then(() => groups);
   }
 
-  updateAll(groups: CategoryGroupSaveObject[]):
-      Promise<CategoryGroupSaveObject[]> {
+  updateAll(groups: CategoryGroup[]): Promise<CategoryGroup[]> {
     groups;
     throw new Error('Not implemented');
   }

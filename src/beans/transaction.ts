@@ -24,6 +24,8 @@ export interface TransactionData {
   subtransactions: SubTransaction[];
 }
 
+export interface SaveTransactionData extends TransactionData {}
+
 export class Transaction {
   transfer_account_id: Option<string>;
   transfer_transaction_id: Option<string>;
@@ -212,5 +214,12 @@ export class Transaction {
       this.matched_transaction_id.unwrapOr(''),
       this.import_id,
     ];
+  }
+
+  toSaveObject(): SaveTransactionData {
+    return {
+      budget_id: this.budget_id,
+      ...this.transaction,
+    };
   }
 }

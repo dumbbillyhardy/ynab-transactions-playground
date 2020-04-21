@@ -8,33 +8,6 @@ export interface CategoryGroupSaveObjectData {
   categoryIds: string[];
 }
 
-export class CategoryGroupSaveObject {
-  readonly budget_id: string;
-  readonly id?: string;
-  readonly name?: string;
-  readonly categoryIds: string[];
-
-  constructor(obj: CategoryGroupSaveObjectData) {
-    this.budget_id = obj.budget_id;
-    this.id = obj.id;
-    this.name = obj.name;
-    this.categoryIds = obj.categoryIds.slice();
-  }
-
-  toSheetsArray(): any[] {
-    return [this.budget_id, this.id, this.name];
-  }
-
-  static fromSheetsArray(row: any[]) {
-    return new CategoryGroupSaveObject({
-      budget_id: row[0],
-      id: row[1],
-      name: row[2],
-      categoryIds: [],
-    });
-  }
-}
-
 export interface CategoryGroupData {
   budget_id: string;
   id?: string;
@@ -59,12 +32,11 @@ export class CategoryGroup {
     return [['✦', this.name], this.categories.map(c => c.toSheetsArray())];
   }
 
-  toSheetsArray(): any[][] {
-    // return [['✦', this.name], this.categories.map(c => c.toSheetsArray())];
-    return this.categories.map(c => c.toSheetsArray());
+  toSheetsArray(): any[] {
+    return [this.budget_id, this.id, this.name];
   }
 
-  static fromSheetsArray(row: any[]): CategoryGroup {
+  static fromSheetsArray(row: any[]) {
     return new CategoryGroup({
       budget_id: row[0],
       id: row[1],
@@ -73,13 +45,22 @@ export class CategoryGroup {
     });
   }
 
-  toYnabSaveObject() {
-    return new CategoryGroupSaveObject({
+  toYnabSaveObject(): CategoryGroupSaveObjectData {
+    return {
       budget_id: this.budget_id,
       id: this.id,
       name: this.name,
       categoryIds: this.categories.map(c => c.id ?? ''),
-    });
+    };
+  }
+
+  toSaveObject() {
+    return {
+      budget_id: this.budget_id,
+      id: this.id,
+      name: this.name,
+      categories: this.categories.map(c => c.toSaveObject()),
+    };
   }
 }
 
@@ -155,6 +136,17 @@ export class Category {
       activity: (row[4] as number) * 1000,
       balance: (row[5] as number) * 1000,
     });
+  }
+
+  toSaveObject() {
+    return {
+      budget_id: this.budget_id,
+      id: this.id,
+      name: this.name,
+      budgeted: this.budgeted,
+      activity: this.activity,
+      balance: this.balance,
+    };
   }
 }
 
