@@ -3,21 +3,21 @@ import {fromNullable, Option} from '../util/option';
 
 export interface CategoryGroupSaveObjectData {
   budget_id: string;
-  id?: string;
+  id: string;
   name?: string;
   categoryIds: string[];
 }
 
 export interface CategoryGroupData {
   budget_id: string;
-  id?: string;
+  id: string;
   name?: string;
   categories: Array<CategoryData>;
 }
 
 export class CategoryGroup {
   budget_id: string;
-  id?: string;
+  id: string;
   name?: string;
   categories: Category[];
 
@@ -66,7 +66,7 @@ export class CategoryGroup {
 
 export interface CategoryData extends GoalData {
   budget_id: string;
-  id?: string;
+  id: string;
   name?: string;
   group_id?: string;
   budgeted: number;

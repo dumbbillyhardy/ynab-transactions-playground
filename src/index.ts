@@ -115,15 +115,11 @@ fs.readFile('config.json', {encoding: 'utf8'})
             ynabCategoriesService, sheetsCategoriesService);
         categoriesMigrator;
 
-        return Promise
-            .all([
-              accountsMigrator.migrate(),
-              categoriesMigrator.migrate(),
-              transactionsMigrator.migrate(),
-            ])
-            .then(() => {
-              return couchDbTransactionsService.getAll().then(console.log);
-            });
+        return Promise.all([
+          accountsMigrator.migrate(),
+          categoriesMigrator.migrate(),
+          transactionsMigrator.migrate(),
+        ]);
       });
     })
     .catch(console.log);
